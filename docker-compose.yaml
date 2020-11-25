@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  ### App Services ###
+  smesp:
+    build: .
+    image: smesp/smesp
+    ports:
+      - 9200:9200
+    env_file:
+      - .env.dev
+    volumes:
+      - .:/source
+    networks:
+      - network
+    depends_on:
+      - postgres
+#      - redis
+
+  ### Infra Services ###
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./db-init.sql:/docker-entrypoint-initdb.d/smesp-db-init.sql
+    networks:
+      - network
+
+#  redis:
+#    image: redis:4
+#    ports:
+#      - 6379:6379
+#    networks:
+#      - network
+
+networks:
+  network:
