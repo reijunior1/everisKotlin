@@ -1,1 +1,75 @@
+# App Configuration
+app:
+  name: smesp
+  environment: ${ENVIRONMENT:local}
+  config:
 
+# Server Configuration
+server:
+  port: 9200
+  servlet.contextPath: /api/v1/
+  error.include-stacktrace: never
+
+# Security Server Configuration
+security:
+  host: https://hml.auth.blupay-apps.com.br
+  oauth2:
+    resource:
+      uri: /auth/realms/spi-psp
+
+# Cache Configuration
+cache:
+  type: redis
+  null-values: false
+  ttl: 300000 # 5 min
+#  ttl: 600000 # 10 min
+#  ttl: 86400000 # 24 hrs
+
+# DB Configuration
+db:
+  addr: localhost:5432
+  name: validator
+  user: validator
+  pass: validator
+
+# Log Level Configuration
+logging:
+  level:
+    root: INFO
+
+# Spring Configurations
+spring:
+  application:
+    name: ${app.name}
+
+  # Spring Security
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${security.host}${security.oauth2.resource.uri}
+
+  # Spring DB Migration
+#  flyway:
+#    out-of-order: true
+
+  # Spring Database
+#  datasource:
+#    url: jdbc:postgresql://${db.addr}/${db.name}
+#    driverClassName: org.postgresql.Driver
+#    initialization-mode: always
+#    username: ${db.user}
+#    password: ${db.pass}
+#
+#  jpa:
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    hibernate.ddl-auto: validate
+
+# Doc Open Api Configuration
+springdoc:
+  use-fqn: true
+  packagesToScan: br.com.blupay
+  api-docs:
+    path: /docs/api-docs
+  swagger-ui:
+    path: /docs/swagger-ui.html

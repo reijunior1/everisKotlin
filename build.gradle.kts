@@ -15,7 +15,9 @@ plugins {
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven(url = "https://repo.gradle.org/gradle/libs-releases")
 }
 
 dependencies {
@@ -28,9 +30,13 @@ dependencies {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
 
+	// BluPay
+	implementation("br.com.blupay:blu-base-modules:1.0-SNAPSHOT")
+
 	// Spring
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 }
 
 tasks.withType<Test> {
