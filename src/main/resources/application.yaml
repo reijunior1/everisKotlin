@@ -11,11 +11,11 @@ server:
   error.include-stacktrace: never
 
 # Security Server Configuration
-security:
-  host: https://hml.auth.blupay-apps.com.br
-  oauth2:
-    resource:
-      uri: /auth/realms/spi-psp
+blupay:
+  security:
+    trusted-issuers:
+      - https://hml.auth.blupay-apps.com.br/auth/realms/smesp
+      - https://hml.auth.blupay-apps.com.br/auth/realms/spi-psp
 
 # Cache Configuration
 cache:
@@ -42,16 +42,9 @@ spring:
   application:
     name: ${app.name}
 
-  # Spring Security
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${security.host}${security.oauth2.resource.uri}
-
   # Spring DB Migration
-#  flyway:
-#    out-of-order: true
+  #  flyway:
+  #    out-of-order: true
 
   # Spring Database
 #  datasource:

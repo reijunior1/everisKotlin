@@ -8,5 +8,5 @@ import org.springframework.boot.runApplication
 class SmespApplication : BaseApp()
 
 fun main(args: Array<String>) {
-	runApplication<SmespApplication>(*args)
+    runApplication<SmespApplication>(*args)
 }
