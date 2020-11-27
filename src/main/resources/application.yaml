@@ -28,9 +28,9 @@ cache:
 # DB Configuration
 db:
   addr: localhost:5432
-  name: validator
-  user: validator
-  pass: validator
+  name: smesp
+  user: smesp
+  pass: smesp
 
 # Log Level Configuration
 logging:
@@ -45,18 +45,24 @@ spring:
   # Spring DB Migration
   #  flyway:
   #    out-of-order: true
+  flyway:
+    out-of-order: true
+    #todo remover linhas abaixo
+    baseline-on-migrate: true
+    enable: true
 
   # Spring Database
-#  datasource:
-#    url: jdbc:postgresql://${db.addr}/${db.name}
-#    driverClassName: org.postgresql.Driver
-#    initialization-mode: always
-#    username: ${db.user}
-#    password: ${db.pass}
-#
-#  jpa:
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate.ddl-auto: validate
+  datasource:
+    url: jdbc:postgresql://${db.addr}/${db.name}
+    driverClassName: org.postgresql.Driver
+    initialization-mode: always
+    username: ${db.user}
+    password: ${db.pass}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.ddl-auto: create
+    #todo mudar pra validate
 
 # Doc Open Api Configuration
 springdoc:
@@ -66,3 +72,10 @@ springdoc:
     path: /docs/api-docs
   swagger-ui:
     path: /docs/swagger-ui.html
+
+# Providers
+provider:
+  host:
+    identity: http://localhost:9110
+  endpoint:
+    get-person: /api/v1/people

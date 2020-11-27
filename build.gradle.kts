@@ -9,6 +9,7 @@ plugins {
     id("org.springframework.boot") version "2.4.0"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     kotlin("jvm") version "1.4.10"
+	kotlin("plugin.jpa") version "1.3.61"
     kotlin("plugin.spring") version "1.4.10"
 }
 
@@ -34,8 +35,16 @@ dependencies {
     implementation("br.com.blupay:blu-base-modules:1.0-SNAPSHOT")
 
     // Spring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+//	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+
+	// Third-Party
+//	implementation("org.flywaydb:flyway-core")
+	implementation("org.postgresql:postgresql")
+	implementation("io.projectreactor.addons:reactor-extra:3.4.0")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 }
 
