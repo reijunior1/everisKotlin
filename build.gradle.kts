@@ -1,11 +1,19 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+// General ~/.gradle/gradle.properties
+val codeArtifactUri: String by project
+val codeArtifactUsername: String by project
+val codeArtifactToken: String by project
+
+// Project ./gradle.properties
 val kotlinVersion: String by project
 val springBootVersion: String by project
 val springCloudVersion: String by project
 val springOpenApiVersion: String by project
 
 plugins {
+    id("java-library")
+    id("maven-publish")
     id("org.springframework.boot") version "2.4.0"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     kotlin("jvm") version "1.4.10"
@@ -13,12 +21,23 @@ plugins {
     kotlin("plugin.spring") version "1.4.10"
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+java {
+    withJavadocJar()
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven(url = "https://repo.gradle.org/gradle/libs-releases")
+    maven {
+        url = uri(codeArtifactUri)
+        credentials {
+            username = codeArtifactUsername
+            password = codeArtifactToken
+        }
+    }
 }
 
 dependencies {
@@ -46,6 +65,24 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.postgresql:postgresql")
     implementation("io.projectreactor.addons:reactor-extra:3.4.0")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("library") {
+            from(components.getByName("java"))
+        }
+    }
+    repositories {
+        // Publish aws repository
+        maven {
+            url = uri(codeArtifactUri)
+            credentials {
+                username = codeArtifactUsername
+                password = codeArtifactToken
+            }
+        }
+    }
 }
 
 tasks.withType<Test> {
