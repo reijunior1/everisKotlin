@@ -73,9 +73,10 @@ springdoc:
 # Providers
 provider:
   host:
-    identity: http://localhost:9110
+    identity: http://localhost:9110/api/v1
   endpoint:
-    get-person: /api/v1/people
+    people: /people
+    people-credentials: /people/{personId}/credentials
 
-cryptation:
+encoder:
   key: rYihXjpiQQXqwwa

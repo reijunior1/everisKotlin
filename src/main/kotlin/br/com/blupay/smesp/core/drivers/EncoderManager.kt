@@ -1,4 +1,4 @@
-package br.com.blupay.smesp.core.encoders
+package br.com.blupay.smesp.core.drivers
 
 import org.apache.tomcat.util.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Value
@@ -8,8 +8,8 @@ import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 @Component
-data class CryptationManager(
-        @Value("\${cryptation.key}") private val secret: String,
+data class EncoderManager(
+        @Value("\${encoder.key}") private val secret: String,
         private val algorithm: String = "Blowfish",
         private val pKey: Key = SecretKeySpec(secret.toByteArray(), algorithm),
         private val cipher: Cipher = Cipher.getInstance(algorithm)

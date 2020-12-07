@@ -1,9 +1,11 @@
 package br.com.blupay.smesp.core.providers.identity
 
-import br.com.blupay.blubasemodules.identity.people.PersonSearch.Response
+import br.com.blupay.blubasemodules.identity.people.PersonCredentials
+import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class IdentityProvider(
@@ -11,11 +13,16 @@ class IdentityProvider(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(IdentityProvider::class.java)
 
-    fun findPersonByCpf(token: String, cpf: String): Response {
-        logger.info("Getting data from Identity by CPF of citizen")
+    fun createPersonCredentials(token: String, personId: UUID, body: PersonCredentials.Request): Boolean {
+        logger.info("Creating credentials for person $personId, into groups ${body.groups}")
+        return identityClient.createPersonCredentials(token, personId, body).block()
+                ?: throw IdentityException("Credentials could not be created")
+    }
 
-        val personList = identityClient.getByCpf(token, cpf)?.block() ?: throw IdentityException(cpf)
-        return personList.data[0]
-//        return CitizenSearch.Response(person.id, person.cpf, person.email, person.phone)
+    fun peopleSearch(token: String, query: PersonSearch.Query): List<PersonSearch.Response> {
+        logger.info("Getting data from Identity by CPF of citizen")
+        val personList = identityClient.peopleSearch(token, query)?.block()
+                ?: throw IdentityException("Couldn't get a list of people")
+        return personList.data
     }
 }
