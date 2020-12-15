@@ -20,7 +20,7 @@ class IdentityProvider(
     }
 
     fun peopleSearch(token: String, query: PersonSearch.Query): List<PersonSearch.Response> {
-        logger.info("Getting data from Identity by CPF of citizen")
+        logger.info("Getting data from Identity by Register (CPF or CNPJ)")
         val personList = identityClient.peopleSearch(token, query)?.block()
                 ?: throw IdentityException("Couldn't get a list of people")
         return personList.data

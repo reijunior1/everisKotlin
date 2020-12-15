@@ -42,12 +42,12 @@ class CitizenService(
         }
 
         val updatedCitizen = citizenRepository.save(citizen.copy(flow = VALIDATION))
-        return createCryptResponse(updatedCitizen)
+        return createCitizenCryptResponse(updatedCitizen)
     }
 
     fun findOne(citizenId: UUID, token: Jwt?): CitizenResponse {
         val citizen = findById(citizenId)
-        return createCryptResponse(citizen)
+        return createCitizenCryptResponse(citizen)
     }
 
     fun findOneByCpf(cpf: String, jwt: Jwt): CitizenResponse {
@@ -55,19 +55,19 @@ class CitizenService(
         val citizen = citizenRepository.findByCpf(cpf)
 
         if (citizen != null) {
-            return createCryptResponse(citizen)
+            return createCitizenCryptResponse(citizen)
         }
 
-        val personList = identityProvider.peopleSearch(token, PersonSearch.Query(cpf = cpf))
+        val personList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cpf))
         val person = personList.stream().findFirst().orElseThrow { throw CitizenNotFoundException(cpf) }
-        val citizenSaved = citizenRepository.save(Citizen(person.id, person.name, person.cpf, person.email, person.phone))
-        return createCryptResponse(citizenSaved)
+        val citizenSaved = citizenRepository.save(Citizen(person.id, person.name, person.register, person.email, person.phone))
+        return createCitizenCryptResponse(citizenSaved)
     }
 
     private fun findById(citizenId: UUID) = citizenRepository.findByIdOrNull(citizenId)
             ?: throw CitizenNotFoundException("$citizenId")
 
-    private fun createCryptResponse(citizen: Citizen): CitizenResponse {
+    private fun createCitizenCryptResponse(citizen: Citizen): CitizenResponse {
         return CitizenResponse(
                 id = citizen.id!!,
                 name = citizen.name,
