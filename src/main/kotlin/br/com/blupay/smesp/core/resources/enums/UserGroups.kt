@@ -1,3 +1,3 @@
 package br.com.blupay.smesp.core.resources.enums
 
-enum class UserGroups { CITIZENS }
+enum class UserGroups { CITIZENS, SELLERS }
