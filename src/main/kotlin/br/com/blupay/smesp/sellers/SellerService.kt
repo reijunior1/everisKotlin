@@ -18,9 +18,11 @@ import java.util.UUID
 import javax.security.auth.login.CredentialException
 
 @Service
-class SellerService(private val sellerRepository: SellerRepository,
-                    private val identityProvider: IdentityProvider,
-                    private val encoderManager: EncoderManager) {
+class SellerService(
+    private val sellerRepository: SellerRepository,
+    private val identityProvider: IdentityProvider,
+    private val encoderManager: EncoderManager
+) {
 
     fun createCredentials(sellerId: UUID, request: PasswordRequest, jwt: Jwt): SellerResponse {
         val token = jwt.tokenValue
@@ -30,10 +32,12 @@ class SellerService(private val sellerRepository: SellerRepository,
             throw SellerException("This seller $sellerId already has a credential")
         }
 
-        val credentialsCreated = identityProvider.createPersonCredentials(token, sellerId, PersonCredentials.Request(
+        val credentialsCreated = identityProvider.createPersonCredentials(
+            token, sellerId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.SELLERS}")
-        ))
+            )
+        )
 
         if (!credentialsCreated) {
             throw CredentialException("Citizen $sellerId credentials were not created")
@@ -55,22 +59,32 @@ class SellerService(private val sellerRepository: SellerRepository,
         val sellerList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cnpj))
 
         val person = sellerList.stream().findFirst().orElseThrow { throw SellerNotFoundException(cnpj) }
-        val savedSeller = sellerRepository.save(Seller(id = person.id, name = person.name, cnpj = person.register, email = person.email, phone = person.phone))
+        val savedSeller = sellerRepository.save(
+            Seller(
+                id = person.id,
+                name = person.name,
+                cnpj = person.register,
+                email = person.email,
+                phone = person.phone,
+                banks = listOf()
+            )
+        )
         return createSellerCryptResponse(savedSeller)
 
     }
 
+    fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
+        ?: throw SellerNotFoundException("$sellerId")
+
+
     private fun createSellerCryptResponse(seller: Seller): SellerResponse {
         return SellerResponse(
-                id = seller.id!!,
-                name = seller.name,
-                cnpj = seller.cnpj,
-                email = encoderManager.encrypt(seller.email),
-                phone = encoderManager.encrypt(seller.phone),
-                flow = seller.flow
+            id = seller.id!!,
+            name = seller.name,
+            cnpj = seller.cnpj,
+            email = encoderManager.encrypt(seller.email),
+            phone = encoderManager.encrypt(seller.phone),
+            flow = seller.flow
         )
     }
-
-    private fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
-            ?: throw SellerNotFoundException("$sellerId")
 }
