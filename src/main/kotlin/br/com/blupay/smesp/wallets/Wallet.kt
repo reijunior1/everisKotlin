@@ -1,5 +1,6 @@
 package br.com.blupay.smesp.wallets
 
+import br.com.blupay.smesp.core.resources.enums.UserTypes
 import java.util.UUID
 import javax.persistence.Entity
 import javax.persistence.EnumType.STRING
@@ -15,9 +16,5 @@ data class Wallet(
         val owner: UUID,
         val token: UUID,
         @Enumerated(STRING)
-        val type: TypeWallet
+        val type: UserTypes
 )
-
-enum class TypeWallet {
-    CITIZEN, SELLER
-}

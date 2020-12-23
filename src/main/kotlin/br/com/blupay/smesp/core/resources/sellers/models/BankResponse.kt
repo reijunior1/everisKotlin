@@ -1,4 +1,4 @@
-package br.com.blupay.smesp.core.resources.banks.models
+package br.com.blupay.smesp.core.resources.sellers.models
 
 import java.util.UUID
 

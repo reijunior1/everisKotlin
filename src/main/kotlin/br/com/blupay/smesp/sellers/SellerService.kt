@@ -10,6 +10,7 @@ import br.com.blupay.smesp.core.resources.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.enums.UserGroups
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerException
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerNotFoundException
+import br.com.blupay.smesp.core.resources.sellers.models.BankResponse
 import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
@@ -76,15 +77,28 @@ class SellerService(
     fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
         ?: throw SellerNotFoundException("$sellerId")
 
+    fun findBankAccounts(sellerId: UUID): List<BankResponse> {
+        val banks = findById(sellerId).banks ?: listOf()
+        return banks.map {
+            BankResponse(
+                    it.id,
+                    it.name,
+                    it.cnpj,
+                    it.agency,
+                    it.account,
+                    it.pix
+            )
+        }
+    }
 
     private fun createSellerCryptResponse(seller: Seller): SellerResponse {
         return SellerResponse(
-            id = seller.id!!,
-            name = seller.name,
-            cnpj = seller.cnpj,
-            email = encoderManager.encrypt(seller.email),
-            phone = encoderManager.encrypt(seller.phone),
-            flow = seller.flow
+                id = seller.id!!,
+                name = seller.name,
+                cnpj = seller.cnpj,
+                email = encoderManager.encrypt(seller.email),
+                phone = encoderManager.encrypt(seller.phone),
+                flow = seller.flow
         )
     }
 }
