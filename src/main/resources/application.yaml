@@ -2,7 +2,6 @@
 app:
   name: smesp
   environment: ${ENVIRONMENT:local}
-  config:
 
 # Server Configuration
 server:
@@ -42,16 +41,9 @@ spring:
   application:
     name: ${app.name}
 
-  # Spring DB Migration
-  #  flyway:
-  #    out-of-order: true
-  flyway:
-    out-of-order: true
-    baseline-on-migrate: true
-
   # Spring Database
   datasource:
-    url: jdbc:postgresql://${db.addr}/${db.name}
+    url: "jdbc:postgresql://${db.addr}/${db.name}"
     driverClassName: org.postgresql.Driver
     initialization-mode: always
     username: ${db.user}
@@ -60,6 +52,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate.ddl-auto: validate
+
+  # Spring DB Migration
+  flyway:
+    enable: true
+    out-of-order: true
 
 # Doc Open Api Configuration
 springdoc:

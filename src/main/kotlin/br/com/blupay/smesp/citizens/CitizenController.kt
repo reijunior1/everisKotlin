@@ -28,6 +28,7 @@ class CitizenController(
         return ResponseEntity.ok(citizen)
     }
 
+    @RolesAllowed("ROLE_GUEST", "ROLE_CITIZEN")
     override fun createCredentials(citizenId: UUID, request: PasswordRequest, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
         val citizen = citizenService.createCredentials(citizenId, request, auth.token)
         return ResponseEntity.status(HttpStatus.CREATED).body(citizen)

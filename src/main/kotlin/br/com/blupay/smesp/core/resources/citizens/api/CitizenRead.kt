@@ -18,7 +18,7 @@ object CitizenRead {
                 auth: JwtAuthenticationToken
         ): ResponseEntity<CitizenResponse>
 
-        @GetMapping("find-by/{cpf}")
+        @GetMapping("find-by-cpf/{cpf}")
         fun findOneByCpf(
                 @PathVariable(value = "cpf") cpf: String,
                 auth: JwtAuthenticationToken

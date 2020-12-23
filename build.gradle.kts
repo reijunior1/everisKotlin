@@ -10,10 +10,15 @@ val kotlinVersion: String by project
 val springBootVersion: String by project
 val springCloudVersion: String by project
 val springOpenApiVersion: String by project
+val dbAddr: String by project
+val dbName: String by project
+val dbUser: String by project
+val dbPass: String by project
 
 plugins {
     id("java-library")
     id("maven-publish")
+    id("org.flywaydb.flyway") version "7.3.2"
     id("org.springframework.boot") version "2.4.0"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     kotlin("jvm") version "1.4.10"
@@ -26,6 +31,13 @@ java {
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+flyway {
+    url = "jdbc:postgresql://${dbAddr}/${dbName}"
+    user = dbUser
+    password = dbPass
+    locations = arrayOf("classpath:db/migration")
 }
 
 repositories {
