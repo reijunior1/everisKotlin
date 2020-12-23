@@ -60,7 +60,16 @@ class CitizenService(
 
         val personList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cpf))
         val person = personList.stream().findFirst().orElseThrow { throw CitizenNotFoundException(cpf) }
-        val citizenSaved = citizenRepository.save(Citizen(person.id, person.name, person.register, person.email, person.phone))
+        val citizenSaved = citizenRepository.save(
+            Citizen(
+                person.id,
+                person.name,
+                person.register,
+                person.email,
+                person.phone,
+                listOf()
+            )
+        )
         return createCitizenCryptResponse(citizenSaved)
     }
 
