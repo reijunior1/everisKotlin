@@ -17,7 +17,8 @@ class BankService(
                 it.name,
                 it.cnpj,
                 it.agency,
-                it.account
+                it.account,
+                it.pix
             )
         }
     }

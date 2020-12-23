@@ -7,5 +7,6 @@ data class BankResponse(
     val name: String,
     val cnpj: String,
     val agency: String,
-    val account: String
+    val account: String,
+    val pix: String
 )

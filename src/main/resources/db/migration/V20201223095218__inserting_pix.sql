@@ -1,0 +1,1 @@
+alter table bank_accounts add column pix varchar(100);

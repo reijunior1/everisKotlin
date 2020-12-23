@@ -16,6 +16,7 @@ data class BankAccount(
     val cnpj: String,
     val agency: String,
     val account: String,
+    val pix: String,
     @ManyToOne
     val seller: Seller?
 )
