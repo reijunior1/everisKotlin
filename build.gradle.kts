@@ -73,6 +73,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
+    // Spring Doc OpenApi
+    implementation("org.springdoc:springdoc-openapi-kotlin:${springOpenApiVersion}")
+    implementation("org.springdoc:springdoc-openapi-ui:${springOpenApiVersion}")
+
     // Third-Party
     implementation("org.flywaydb:flyway-core")
     implementation("org.postgresql:postgresql")
