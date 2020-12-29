@@ -67,8 +67,33 @@ springdoc:
   swagger-ui:
     path: /docs/swagger-ui.html
 
+service:
+  token:
+    type: BRL
+
 # Providers
 provider:
+  token:
+    host: https://blupay-tk.com.br/api/token
+#    host: http://localhost:6901/api/token
+    endpoint:
+      node:
+        public-key: /node/public-key
+        party: /node/party
+      wallet:
+        get: /wallet/get
+        balance: /wallet/balance
+        ioy-balance: /wallet/ioy-balance
+        settlement-balance: /wallet/settlement-balance
+        issue: /wallet
+        add-role: /wallet/role
+      token:
+        issue: /token/issue
+        move: /token/move
+        redeem: /token/redeem
+        safe-move: /token/safe-move
+        pay-ioy: /token/pay-ioy
+        settlement-order: /token/settlement-order
   host:
     identity: http://localhost:9110/api/v1
   endpoint:
