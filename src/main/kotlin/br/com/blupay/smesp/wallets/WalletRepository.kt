@@ -7,4 +7,8 @@ import java.util.UUID
 @Repository
 interface WalletRepository : JpaRepository<Wallet, UUID> {
     fun findWalletByOwnerAndToken(owner: UUID, token: UUID): Wallet?
+
+    fun findWalletByToken(token: UUID): Wallet?
+
+    fun findWalletByOwner(owner: UUID): Wallet?
 }

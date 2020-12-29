@@ -38,9 +38,10 @@ class JwsService {
 
         val jsonData = Gson().toJson(data)
 
-        var jwsObject = JWSObject(
-                JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaJWK.keyID).build(),
-                Payload(jsonData))
+        val jwsObject = JWSObject(
+            JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaJWK.keyID).build(),
+            Payload(jsonData)
+        )
 
         jwsObject.sign(signer)
         return jwsObject.serialize()
@@ -60,6 +61,13 @@ class JwsService {
         return kf.generatePublic(pk)
     }
 
+    fun getKeyPair(): KeyPair {
+        val rsaJWK: RSAKey = RSAKeyGenerator(2048)
+            .keyID(UUID.randomUUID().toString())
+            .generate()
+        return KeyPair(rsaJWK.toRSAPrivateKey(), rsaJWK.toRSAPublicKey())
+    }
+
     private fun getRSAKey(publicKey: String, privateKey: String? = null): RSAKey {
         val pubKey = getPublicKey(publicKey)
 
@@ -68,7 +76,7 @@ class JwsService {
         if (privateKey != null) {
             val privKey = getPrivateKey(privateKey)
             rsaJWK.privateKey(privKey as RSAPrivateKey)
-                    .keyUse(KeyUse.SIGNATURE)
+                .keyUse(KeyUse.SIGNATURE)
         }
 
         return rsaJWK.build()
@@ -81,13 +89,6 @@ class JwsService {
         val sk = PKCS8EncodedKeySpec(privateKeyBytes)
         val kf = KeyFactory.getInstance("RSA")
         return kf.generatePrivate(sk)
-    }
-
-    private fun getKeyPair(): KeyPair {
-        val rsaJWK: RSAKey = RSAKeyGenerator(2048)
-                .keyID(UUID.randomUUID().toString())
-                .generate()
-        return KeyPair(rsaJWK.toRSAPrivateKey(), rsaJWK.toRSAPublicKey())
     }
 
     class KeyPair(

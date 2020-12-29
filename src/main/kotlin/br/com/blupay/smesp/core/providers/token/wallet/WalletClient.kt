@@ -17,12 +17,12 @@ class WalletClient(
         @Value("\${provider.token.endpoint.wallet.add-role}") private val addWalletRole: String
 ) : ReactiveClient(baseUrl) {
 
-    fun issueWallet(bearerToken: String, wallet: IssueWallet): Mono<Wallet>? {
+    fun issueWallet(bearerToken: String, wallet: IssueWallet): Mono<WalletTokenResponse>? {
         return post(issueWallet)
-                .contentType(MediaType.APPLICATION_JSON)
-                .authBearer(bearerToken)
-                .body(wallet)
-                .send(Wallet::class.java)
+            .contentType(MediaType.APPLICATION_JSON)
+            .authBearer(bearerToken)
+            .body(wallet)
+            .send(WalletTokenResponse::class.java)
     }
 
     fun getWallet(bearerToken: String, data: String): Mono<WalletResponse>? {

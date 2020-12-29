@@ -2,7 +2,7 @@ package br.com.blupay.smesp.core.providers.token.wallet
 
 import java.util.UUID
 
-data class Wallet(
+data class WalletTokenResponse(
         val party: String,
         val id: UUID,
         val alias: String,
@@ -10,7 +10,7 @@ data class Wallet(
 )
 
 data class WalletResponse(
-        val wallet: Wallet,
+        val wallet: WalletTokenResponse,
         val roles: List<WalletRole>
 )
 

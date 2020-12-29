@@ -8,6 +8,22 @@ import java.util.UUID
 class WalletService(val walletRepository: WalletRepository) {
     fun findWalletByOwnerAndToken(owner: UUID, token: UUID): Wallet? {
         return walletRepository.findWalletByOwnerAndToken(owner, token)
-                ?: throw WalletNotFoundException(owner.toString(), token.toString())
+            ?: throw WalletNotFoundException(owner.toString())
+    }
+
+    fun findWalletByOwner(owner: UUID): Wallet {
+        return walletRepository.findWalletByOwner(owner)
+            ?: throw WalletNotFoundException(owner.toString())
+    }
+
+    fun findByToken(token: UUID): Wallet {
+        return walletRepository.findWalletByToken(token)
+            ?: throw WalletNotFoundException(token.toString())
+    }
+
+    fun findWalletById(id: UUID): Wallet {
+        return walletRepository.findById(id).orElseThrow {
+            throw WalletNotFoundException(id.toString())
+        }
     }
 }

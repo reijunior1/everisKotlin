@@ -38,7 +38,7 @@ class WalletProvider(
         return walletClient.settlementBalance(token, signData) ?: throw TokenException("GET_WALLET_SETTLEMENT_BALANCE_ERROR")
     }
 
-    fun issueWallet(token: String, wallet: IssueWallet): Mono<Wallet> {
+    fun issueWallet(token: String, wallet: IssueWallet): Mono<WalletTokenResponse> {
         logger.info("Create Wallet")
         return walletClient.issueWallet(token, wallet) ?: throw TokenException("ISSUE_WALLET_ERROR")
     }

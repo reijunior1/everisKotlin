@@ -4,14 +4,21 @@ import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
+import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
+import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.RECEIVER
 import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.enums.OnboardFlow
 import br.com.blupay.smesp.core.resources.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.enums.UserGroups
+import br.com.blupay.smesp.core.resources.enums.UserTypes.SELLER
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerException
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerNotFoundException
 import br.com.blupay.smesp.core.resources.sellers.models.BankResponse
 import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
+import br.com.blupay.smesp.core.services.JwsService
+import br.com.blupay.smesp.token.TokenWalletService
+import br.com.blupay.smesp.wallets.Wallet
+import br.com.blupay.smesp.wallets.WalletRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -22,7 +29,10 @@ import javax.security.auth.login.CredentialException
 class SellerService(
     private val sellerRepository: SellerRepository,
     private val identityProvider: IdentityProvider,
-    private val encoderManager: EncoderManager
+    private val encoderManager: EncoderManager,
+    private val tokenWalletService: TokenWalletService,
+    private val walletRepository: WalletRepository,
+    private val jwsService: JwsService
 ) {
 
     fun createCredentials(sellerId: UUID, request: PasswordRequest, jwt: Jwt): SellerResponse {
@@ -60,7 +70,7 @@ class SellerService(
         val sellerList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cnpj))
 
         val person = sellerList.stream().findFirst().orElseThrow { throw SellerNotFoundException(cnpj) }
-        val savedSeller = sellerRepository.save(
+        val sellerSaved = sellerRepository.save(
             Seller(
                 id = person.id,
                 name = person.name,
@@ -70,7 +80,25 @@ class SellerService(
                 banks = listOf()
             )
         )
-        return createSellerCryptResponse(savedSeller)
+
+        val pairKeys = jwsService.getKeyPair()
+
+        val wallet = tokenWalletService.issueWallet(
+            jwt.tokenValue,
+            IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey.toString(), RECEIVER)
+        ).block()
+        walletRepository.save(
+            Wallet(
+                UUID.randomUUID(),
+                sellerSaved.id!!,
+                wallet?.id!!,
+                SELLER,
+                pairKeys.publicKey.toString(),
+                pairKeys.privateKey.toString()
+            )
+        )
+
+        return createSellerCryptResponse(sellerSaved)
 
     }
 

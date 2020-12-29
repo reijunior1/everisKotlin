@@ -12,9 +12,9 @@ import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
 import br.com.blupay.smesp.core.providers.token.wallet.IoyBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
-import br.com.blupay.smesp.core.providers.token.wallet.Wallet
 import br.com.blupay.smesp.core.providers.token.wallet.WalletResponse
 import br.com.blupay.smesp.core.providers.token.wallet.WalletRole
+import br.com.blupay.smesp.core.providers.token.wallet.WalletTokenResponse
 import br.com.blupay.smesp.core.services.JwsService
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.GetMapping
@@ -62,8 +62,8 @@ class TokenController(
 
     @PostMapping("/admin/load")
     fun loadAdmin(
-            auth: JwtAuthenticationToken
-    ): Mono<Wallet> {
+        auth: JwtAuthenticationToken
+    ): Mono<WalletTokenResponse> {
         val token = auth.token.tokenValue
         return tokenWalletService.loadAdmin(token)
     }
@@ -108,9 +108,9 @@ class TokenController(
 
     @PostMapping("/wallet/issue")
     fun issueWallet(
-            auth: JwtAuthenticationToken,
-            @RequestBody wallet: IssueWallet
-    ): Mono<Wallet> {
+        auth: JwtAuthenticationToken,
+        @RequestBody wallet: IssueWallet
+    ): Mono<WalletTokenResponse> {
         val token = auth.token.tokenValue
         return tokenWalletService.issueWallet(token, wallet)
     }

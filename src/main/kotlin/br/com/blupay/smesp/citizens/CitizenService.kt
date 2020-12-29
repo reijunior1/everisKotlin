@@ -4,6 +4,8 @@ import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
+import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
+import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.PAYER
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenException
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenNotFoundException
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
@@ -11,6 +13,11 @@ import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.enums.OnboardFlow
 import br.com.blupay.smesp.core.resources.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.enums.UserGroups
+import br.com.blupay.smesp.core.resources.enums.UserTypes.CITIZEN
+import br.com.blupay.smesp.core.services.JwsService
+import br.com.blupay.smesp.token.TokenWalletService
+import br.com.blupay.smesp.wallets.Wallet
+import br.com.blupay.smesp.wallets.WalletRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -19,9 +26,12 @@ import javax.security.auth.login.CredentialException
 
 @Service
 class CitizenService(
-        private val citizenRepository: CitizenRepository,
-        private val encoderManager: EncoderManager,
-        private val identityProvider: IdentityProvider
+    private val citizenRepository: CitizenRepository,
+    private val encoderManager: EncoderManager,
+    private val identityProvider: IdentityProvider,
+    private val tokenWalletService: TokenWalletService,
+    private val walletRepository: WalletRepository,
+    private val jwsService: JwsService
 ) {
 
     fun createCredentials(citizenId: UUID, request: PasswordRequest, jwt: Jwt): CitizenResponse {
@@ -70,6 +80,24 @@ class CitizenService(
                 listOf()
             )
         )
+
+        val pairKeys = jwsService.getKeyPair()
+
+        val wallet = tokenWalletService.issueWallet(
+            jwt.tokenValue,
+            IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey.toString(), PAYER)
+        ).block()
+        walletRepository.save(
+            Wallet(
+                UUID.randomUUID(),
+                citizenSaved.id!!,
+                wallet?.id!!,
+                CITIZEN,
+                pairKeys.publicKey.toString(),
+                pairKeys.privateKey.toString()
+            )
+        )
+
         return createCitizenCryptResponse(citizenSaved)
     }
 

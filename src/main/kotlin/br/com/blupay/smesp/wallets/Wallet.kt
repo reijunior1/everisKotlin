@@ -16,5 +16,7 @@ data class Wallet(
         val owner: UUID,
         val token: UUID,
         @Enumerated(STRING)
-        val type: UserTypes
+        val type: UserTypes,
+        val publicKey: String,
+        val privateKey: String
 )
