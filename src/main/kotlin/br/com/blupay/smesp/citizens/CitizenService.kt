@@ -42,10 +42,12 @@ class CitizenService(
             throw CitizenException("This citizen $citizenId already has a credential")
         }
 
-        val credentialsCreated = identityProvider.createPersonCredentials(token, citizenId, PersonCredentials.Request(
+        val credentialsCreated = identityProvider.createPersonCredentials(
+            token, citizenId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.CITIZENS}")
-        ))
+            )
+        )
 
         if (!credentialsCreated) {
             throw CredentialException("Citizen $citizenId credentials were not created")
@@ -101,17 +103,23 @@ class CitizenService(
         return createCitizenCryptResponse(citizenSaved)
     }
 
+    fun getBenefit(citizenId: UUID): Long {
+        val citizen = findById(citizenId)
+        val children = citizen.children
+        return children.map { it.category.price }.sum()
+    }
+
     private fun findById(citizenId: UUID) = citizenRepository.findByIdOrNull(citizenId)
-            ?: throw CitizenNotFoundException("$citizenId")
+        ?: throw CitizenNotFoundException("$citizenId")
 
     private fun createCitizenCryptResponse(citizen: Citizen): CitizenResponse {
         return CitizenResponse(
-                id = citizen.id!!,
-                name = citizen.name,
-                cpf = citizen.cpf,
-                email = encoderManager.encrypt(citizen.email),
-                phone = encoderManager.encrypt(citizen.phone),
-                flow = citizen.flow
+            id = citizen.id!!,
+            name = citizen.name,
+            cpf = citizen.cpf,
+            email = encoderManager.encrypt(citizen.email),
+            phone = encoderManager.encrypt(citizen.phone),
+            flow = citizen.flow
         )
     }
 }

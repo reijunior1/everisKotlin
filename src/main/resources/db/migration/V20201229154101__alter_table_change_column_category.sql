@@ -1,0 +1,1 @@
+ALTER TABLE categories ALTER COLUMN category TYPE VARCHAR(50);
