@@ -18,11 +18,6 @@ object SellerRead {
                 @PathVariable("cnpj") cnpj: String,
                 auth: JwtAuthenticationToken
         ): ResponseEntity<SellerResponse>
-
-        @GetMapping("{sellerId}/bank-accounts")
-        fun findBankAccountsFromSeller(
-                @PathVariable("sellerId") sellerId: UUID
-        ): ResponseEntity<List<BankResponse>?>
     }
 
 }

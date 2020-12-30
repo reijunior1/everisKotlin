@@ -6,16 +6,19 @@ import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.RECEIVER
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow.VALIDATION
-import br.com.blupay.smesp.core.resources.enums.UserGroups
-import br.com.blupay.smesp.core.resources.enums.UserTypes.SELLER
+import br.com.blupay.smesp.core.resources.sellers.api.SellerBankAccount
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.VALIDATION
+import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
+import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.SELLER
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerException
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerNotFoundException
 import br.com.blupay.smesp.core.resources.sellers.models.BankResponse
 import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
 import br.com.blupay.smesp.core.services.JwsService
+import br.com.blupay.smesp.sellers.banks.BankAccount
+import br.com.blupay.smesp.sellers.banks.BankAccountRepository
 import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
@@ -27,6 +30,7 @@ import javax.security.auth.login.CredentialException
 
 @Service
 class SellerService(
+    private val bankAccountRepository: BankAccountRepository,
     private val sellerRepository: SellerRepository,
     private val identityProvider: IdentityProvider,
     private val encoderManager: EncoderManager,
@@ -105,19 +109,32 @@ class SellerService(
     fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
         ?: throw SellerNotFoundException("$sellerId")
 
+    fun createBankAccount(sellerId: UUID, requestBody: SellerBankAccount.Request): BankResponse? {
+        val seller = findById(sellerId)
+        val bankAccountSaved = bankAccountRepository.save(BankAccount(
+                name = requestBody.name,
+                cnpj = seller.cnpj,
+                agency = requestBody.agency,
+                account = requestBody.account,
+                seller = seller,
+                pix = requestBody.pix
+        ))
+        return createBankResponse(bankAccountSaved)
+    }
+
     fun findBankAccounts(sellerId: UUID): List<BankResponse> {
         val banks = findById(sellerId).banks ?: listOf()
-        return banks.map {
-            BankResponse(
-                    it.id,
-                    it.name,
-                    it.cnpj,
-                    it.agency,
-                    it.account,
-                    it.pix
-            )
-        }
+        return banks.map { createBankResponse(it) }
     }
+
+    private fun createBankResponse(bankAccount: BankAccount) = BankResponse(
+            bankAccount.id,
+            bankAccount.name,
+            bankAccount.cnpj,
+            bankAccount.agency,
+            bankAccount.account,
+            bankAccount.pix
+    )
 
     private fun createSellerCryptResponse(seller: Seller): SellerResponse {
         return SellerResponse(

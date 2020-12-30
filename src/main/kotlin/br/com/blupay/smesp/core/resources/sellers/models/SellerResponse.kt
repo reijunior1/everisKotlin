@@ -1,7 +1,7 @@
 package br.com.blupay.smesp.core.resources.sellers.models
 
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow.CREDENTIALS
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.CREDENTIALS
 import java.util.UUID
 
 data class SellerResponse(

@@ -8,15 +8,30 @@ import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 @Entity
-@Table(name= "bankAccounts")
+@Table(name = "bankAccounts")
 data class BankAccount(
-    @Id
-    val id: UUID,
-    val name: String,
-    val cnpj: String,
-    val agency: String,
-    val account: String,
-    val pix: String,
-    @ManyToOne
-    val seller: Seller?
-)
+        @Id
+        val id: UUID,
+        val name: String,
+        val cnpj: String,
+        val agency: String,
+        val account: String,
+        val pix: String? = null,
+        @ManyToOne
+        val seller: Seller? = null
+) {
+    constructor(name: String,
+                cnpj: String,
+                agency: String,
+                account: String,
+                seller: Seller? = null,
+                pix: String? = null) : this(
+            id = UUID.randomUUID(),
+            name = name,
+            cnpj = cnpj,
+            agency = agency,
+            account = account,
+            seller = seller,
+            pix = pix,
+    )
+}

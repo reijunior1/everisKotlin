@@ -9,11 +9,11 @@ import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.PAYER
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenException
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenNotFoundException
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow
-import br.com.blupay.smesp.core.resources.enums.OnboardFlow.VALIDATION
-import br.com.blupay.smesp.core.resources.enums.UserGroups
-import br.com.blupay.smesp.core.resources.enums.UserTypes.CITIZEN
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
+import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.VALIDATION
+import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
+import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.CITIZEN
 import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.wallets.Wallet

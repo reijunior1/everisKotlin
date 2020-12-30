@@ -1,6 +1,6 @@
 package br.com.blupay.smesp.core.resources.sellers.api
 
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken

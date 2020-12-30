@@ -1,6 +1,7 @@
 package br.com.blupay.smesp.sellers
 
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.sellers.api.SellerBankAccount
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.sellers.api.SellerCreate
 import br.com.blupay.smesp.core.resources.sellers.api.SellerRead
 import br.com.blupay.smesp.core.resources.sellers.models.BankResponse
@@ -14,11 +15,16 @@ import java.util.UUID
 @RestController
 class SellerController(
         private val sellerService: SellerService,
-) : SellerRead.Controller, SellerCreate.Controller {
+) : SellerRead.Controller, SellerCreate.Controller, SellerBankAccount.Controller {
 
     override fun findOneByCnpj(cnpj: String, auth: JwtAuthenticationToken): ResponseEntity<SellerResponse> {
         val seller = sellerService.findOneByCnpj(cnpj, auth.token)
         return ResponseEntity.ok(seller)
+    }
+
+    override fun createBankAccountsToSeller(sellerId: UUID, requestBody: SellerBankAccount.Request): ResponseEntity<BankResponse> {
+        val bankAccount = sellerService.createBankAccount(sellerId, requestBody)
+        return ResponseEntity.status(HttpStatus.CREATED).body(bankAccount)
     }
 
     override fun findBankAccountsFromSeller(sellerId: UUID): ResponseEntity<List<BankResponse>?> {

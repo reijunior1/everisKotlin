@@ -1,7 +1,7 @@
 package br.com.blupay.smesp.core.resources.citizens.api
 
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.PathVariable

@@ -3,7 +3,7 @@ package br.com.blupay.smesp.citizens
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenCreate
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenRead
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
-import br.com.blupay.smesp.core.resources.citizens.models.PasswordRequest
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
