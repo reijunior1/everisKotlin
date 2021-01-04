@@ -16,6 +16,7 @@ import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.CITIZEN
 import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.services.JwsService
+import br.com.blupay.smesp.core.services.OwnerService
 import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
@@ -26,6 +27,7 @@ import javax.security.auth.login.CredentialException
 
 @Service
 class CitizenService(
+    private val ownerService: OwnerService,
     private val citizenRepository: CitizenRepository,
     private val encoderManager: EncoderManager,
     private val identityProvider: IdentityProvider,
@@ -57,8 +59,9 @@ class CitizenService(
     }
 
     fun findOne(citizenId: UUID, auth: AuthCredentials): CitizenResponse {
+        ownerService.userOwns(auth, citizenId)
+
         val citizen = findById(citizenId)
-        verifyPermission(citizen, auth)
         val wallet = walletRepository.findByOwner(citizenId)
         return createCitizenCryptResponse(citizen, wallet)
     }
@@ -123,11 +126,5 @@ class CitizenService(
             flow = citizen.flow,
             walletId = wallet?.id
         )
-    }
-
-    private fun verifyPermission(citizen: Citizen, auth: AuthCredentials) {
-        if (citizen.cpf != auth.username) {
-            throw CitizenPermissionException("User ${auth.username} cannot access this resource.")
-        }
     }
 }
