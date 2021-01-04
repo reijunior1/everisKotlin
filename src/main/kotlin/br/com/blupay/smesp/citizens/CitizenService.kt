@@ -10,11 +10,11 @@ import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.PAYER
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenException
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenNotFoundException
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
-import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.CITIZEN
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.wallets.Wallet
@@ -59,7 +59,7 @@ class CitizenService(
     fun findOne(citizenId: UUID, auth: AuthCredentials): CitizenResponse {
         val citizen = findById(citizenId)
         verifyPermission(citizen, auth)
-        val wallet = walletRepository.findWalletByOwner(citizenId)
+        val wallet = walletRepository.findByOwner(citizenId)
         return createCitizenCryptResponse(citizen, wallet)
     }
 
@@ -83,7 +83,8 @@ class CitizenService(
             )
         )
 
-        val pairKeys = jwsService.getKeyPair()
+        val pairKeys = jwsService.getKeyPairEncoded()
+        val walletId = UUID.randomUUID()
 
         val wallet = tokenWalletService.issueWallet(
             auth.token,
@@ -91,12 +92,12 @@ class CitizenService(
         ).block()
         walletRepository.save(
             Wallet(
-                UUID.randomUUID(),
+                walletId,
                 citizenSaved.id!!,
                 wallet?.id!!,
                 CITIZEN,
-                pairKeys.publicKey.toString(),
-                pairKeys.privateKey.toString()
+                pairKeys.publicKey,
+                pairKeys.privateKey
             )
         )
 

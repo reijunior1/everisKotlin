@@ -24,7 +24,7 @@ class TokenService(
     private val nodeProvider: NodeProvider,
     private val tokenProvider: TokenProvider
 ) {
-    fun issueToken(token: String, signer: WalletTemp, id: UUID, amount: Long, maxSize: Long): Mono<IssueTokensRequest> {
+    fun issueToken(token: String, signer: WalletData, id: UUID, amount: Long, maxSize: Long): Mono<IssueTokensRequest> {
         return nodeProvider.getPublicKey(token).map { node ->
             IssueTokensRequest(
                 TokenHeader(
@@ -48,7 +48,7 @@ class TokenService(
 
     fun moveToken(
         token: String,
-        signer: WalletTemp,
+        signer: WalletData,
         debtorId: UUID,
         creditors: List<Creditor>
     ): Mono<MoveTokensRequest> {
@@ -78,7 +78,7 @@ class TokenService(
         }
     }
 
-    fun redeemToken(token: String, signer: WalletTemp, settlementId: UUID): Mono<RedeemTokensRequest> {
+    fun redeemToken(token: String, signer: WalletData, settlementId: UUID): Mono<RedeemTokensRequest> {
         val data = RedeemTokensRequest(
             TokenHeader(
                 action = "br.com.blupay.token.workflows.token.RedeemTokens",
@@ -91,7 +91,7 @@ class TokenService(
 
     fun safeMoveToken(
         token: String,
-        signer: WalletTemp,
+        signer: WalletData,
         dueDate: Long,
         debtorId: UUID,
         ioyWalletId: UUID,
@@ -128,7 +128,7 @@ class TokenService(
         }
     }
 
-    fun payIoyToken(token: String, signer: WalletTemp, ioyId: UUID): Mono<IoyMoveTokensRequest> {
+    fun payIoyToken(token: String, signer: WalletData, ioyId: UUID): Mono<IoyMoveTokensRequest> {
         val data = IoyMoveTokensRequest(
             TokenHeader(
                 action = "br.com.blupay.token.workflows.token.PayIoy",
@@ -141,7 +141,7 @@ class TokenService(
 
     fun settlementOrderToken(
         token: String,
-        signer: WalletTemp,
+        signer: WalletData,
         dueDate: Long,
         debtorId: UUID,
         cashoutWalletId: UUID,
