@@ -120,7 +120,7 @@ class CitizenService(
             email = encoderManager.encrypt(citizen.email),
             phone = encoderManager.encrypt(citizen.phone),
             flow = citizen.flow,
-            wallet = wallet?.id
+            walletId = wallet?.id
         )
     }
 

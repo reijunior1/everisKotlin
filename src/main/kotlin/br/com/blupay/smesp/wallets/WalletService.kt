@@ -1,5 +1,6 @@
 package br.com.blupay.smesp.wallets
 
+import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.smesp.core.resources.wallets.exceptions.WalletNotFoundException
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -25,5 +26,18 @@ class WalletService(val walletRepository: WalletRepository) {
         return walletRepository.findById(id).orElseThrow {
             throw WalletNotFoundException(id.toString())
         }
+    }
+
+    fun save(owner: UUID, tokenId: UUID, type: UserTypes, publicKey: String, privateKey: String): Wallet {
+        return walletRepository.save(
+                Wallet(
+                        UUID.randomUUID(),
+                        owner,
+                        tokenId,
+                        type,
+                        publicKey,
+                        privateKey
+                )
+        )
     }
 }
