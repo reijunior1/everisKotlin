@@ -1,5 +1,6 @@
 package br.com.blupay.smesp.citizens
 
+import br.com.blupay.blubasemodules.core.models.AuthCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.smesp.core.drivers.EncoderManager
@@ -19,7 +20,6 @@ import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import java.util.UUID
 import javax.security.auth.login.CredentialException
@@ -34,8 +34,7 @@ class CitizenService(
     private val jwsService: JwsService
 ) {
 
-    fun createCredentials(citizenId: UUID, request: PasswordRequest, jwt: Jwt): CitizenResponse {
-        val token = jwt.tokenValue
+    fun createCredentials(citizenId: UUID, request: PasswordRequest, auth: AuthCredentials): CitizenResponse {
         val citizen = findById(citizenId)
 
         if (OnboardFlow.CREDENTIALS != citizen.flow) {
@@ -43,7 +42,7 @@ class CitizenService(
         }
 
         val credentialsCreated = identityProvider.createPersonCredentials(
-            token, citizenId, PersonCredentials.Request(
+            auth.token, citizenId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.CITIZENS}")
             )
@@ -57,20 +56,21 @@ class CitizenService(
         return createCitizenCryptResponse(updatedCitizen)
     }
 
-    fun findOne(citizenId: UUID, token: Jwt?): CitizenResponse {
+    fun findOne(citizenId: UUID, auth: AuthCredentials): CitizenResponse {
         val citizen = findById(citizenId)
-        return createCitizenCryptResponse(citizen)
+        verifyPermission(citizen, auth)
+        val wallet = walletRepository.findWalletByOwner(citizenId)
+        return createCitizenCryptResponse(citizen, wallet)
     }
 
-    fun findOneByCpf(cpf: String, jwt: Jwt): CitizenResponse {
-        val token = jwt.tokenValue
+    fun findOneByCpf(cpf: String, auth: AuthCredentials): CitizenResponse {
         val citizen = citizenRepository.findByCpf(cpf)
 
         if (citizen != null) {
             return createCitizenCryptResponse(citizen)
         }
 
-        val personList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cpf))
+        val personList = identityProvider.peopleSearch(auth.token, PersonSearch.Query(register = cpf))
         val person = personList.stream().findFirst().orElseThrow { throw CitizenNotFoundException(cpf) }
         val citizenSaved = citizenRepository.save(
             Citizen(
@@ -86,7 +86,7 @@ class CitizenService(
         val pairKeys = jwsService.getKeyPair()
 
         val wallet = tokenWalletService.issueWallet(
-            jwt.tokenValue,
+            auth.token,
             IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey.toString(), PAYER)
         ).block()
         walletRepository.save(
@@ -112,14 +112,21 @@ class CitizenService(
     private fun findById(citizenId: UUID) = citizenRepository.findByIdOrNull(citizenId)
         ?: throw CitizenNotFoundException("$citizenId")
 
-    private fun createCitizenCryptResponse(citizen: Citizen): CitizenResponse {
+    private fun createCitizenCryptResponse(citizen: Citizen, wallet: Wallet? = null): CitizenResponse {
         return CitizenResponse(
             id = citizen.id!!,
             name = citizen.name,
             cpf = citizen.cpf,
             email = encoderManager.encrypt(citizen.email),
             phone = encoderManager.encrypt(citizen.phone),
-            flow = citizen.flow
+            flow = citizen.flow,
+            wallet = wallet?.id
         )
+    }
+
+    private fun verifyPermission(citizen: Citizen, auth: AuthCredentials) {
+        if (citizen.cpf != auth.username) {
+            throw CitizenPermissionException("User ${auth.username} cannot access this resource.")
+        }
     }
 }

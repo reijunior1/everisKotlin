@@ -20,11 +20,13 @@ object SellerBankAccount {
         fun createBankAccountsToSeller(
                 @PathVariable("sellerId") sellerId: UUID,
                 @RequestBody requestBody: Request,
+                auth: JwtAuthenticationToken
         ): ResponseEntity<BankResponse>
 
         @GetMapping("{sellerId}/bank-accounts")
         fun findBankAccountsFromSeller(
-                @PathVariable("sellerId") sellerId: UUID
+                @PathVariable("sellerId") sellerId: UUID,
+                auth: JwtAuthenticationToken
         ): ResponseEntity<List<BankResponse>?>
     }
 

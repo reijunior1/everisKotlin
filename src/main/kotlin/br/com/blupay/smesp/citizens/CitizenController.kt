@@ -1,5 +1,6 @@
 package br.com.blupay.smesp.citizens
 
+import br.com.blupay.blubasemodules.core.extensions.authCredentials
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenCreate
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenRead
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
@@ -16,21 +17,23 @@ class CitizenController(
         val citizenService: CitizenService
 ) : CitizenCreate.Controller, CitizenRead.Controller {
 
-    @RolesAllowed("ROLE_GUEST", "ROLE_CITIZEN")
+    @RolesAllowed("ROLE_CITIZEN")
     override fun findOne(citizenId: UUID, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
-        val data = citizenService.findOne(citizenId, auth.token)
+        val data = citizenService.findOne(citizenId, auth.authCredentials)
         return ResponseEntity.ok(data)
     }
 
     @RolesAllowed("ROLE_GUEST", "ROLE_CITIZEN")
     override fun findOneByCpf(cpf: String, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
-        val citizen = citizenService.findOneByCpf(cpf, auth.token)
+        val citizen = citizenService.findOneByCpf(cpf, auth.authCredentials)
         return ResponseEntity.ok(citizen)
     }
 
     @RolesAllowed("ROLE_GUEST", "ROLE_CITIZEN")
-    override fun createCredentials(citizenId: UUID, request: PasswordRequest, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
-        val citizen = citizenService.createCredentials(citizenId, request, auth.token)
+    override fun createCredentials(citizenId: UUID,
+                                   request: PasswordRequest,
+                                   auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
+        val citizen = citizenService.createCredentials(citizenId, request, auth.authCredentials)
         return ResponseEntity.status(HttpStatus.CREATED).body(citizen)
     }
 }
