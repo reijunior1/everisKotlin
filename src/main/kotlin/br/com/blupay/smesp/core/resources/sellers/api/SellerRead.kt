@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import java.util.UUID
 
 object SellerRead {
     @RequestMapping("sellers")
@@ -13,8 +14,14 @@ object SellerRead {
 
         @GetMapping("find-by-cnpj/{cnpj}")
         fun findOneByCnpj(
-                @PathVariable("cnpj") cnpj: String,
-                auth: JwtAuthenticationToken
+            @PathVariable("cnpj") cnpj: String,
+            auth: JwtAuthenticationToken
+        ): ResponseEntity<SellerResponse>
+
+        @GetMapping("{sellerId}")
+        fun findOne(
+            @PathVariable("sellerId") sellerId: UUID,
+            auth: JwtAuthenticationToken
         ): ResponseEntity<SellerResponse>
     }
 

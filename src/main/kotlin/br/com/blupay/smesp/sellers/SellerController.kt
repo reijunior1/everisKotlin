@@ -2,11 +2,11 @@ package br.com.blupay.smesp.sellers
 
 import br.com.blupay.blubasemodules.core.extensions.authCredentials
 import br.com.blupay.smesp.core.resources.sellers.api.SellerBankAccount
-import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.resources.sellers.api.SellerCreate
 import br.com.blupay.smesp.core.resources.sellers.api.SellerRead
 import br.com.blupay.smesp.core.resources.sellers.models.BankResponse
 import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
+import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -25,10 +25,17 @@ class SellerController(
         return ResponseEntity.ok(seller)
     }
 
+    override fun findOne(id: UUID, auth: JwtAuthenticationToken): ResponseEntity<SellerResponse> {
+        val data = sellerService.findOne(id, auth.authCredentials)
+        return ResponseEntity.ok(data)
+    }
+
     @RolesAllowed("ROLE_SELLER")
-    override fun createBankAccountsToSeller(sellerId: UUID,
-                                            requestBody: SellerBankAccount.Request,
-                                            auth: JwtAuthenticationToken): ResponseEntity<BankResponse> {
+    override fun createBankAccountsToSeller(
+        sellerId: UUID,
+        requestBody: SellerBankAccount.Request,
+        auth: JwtAuthenticationToken
+    ): ResponseEntity<BankResponse> {
 
         val bankAccount = sellerService.createBankAccount(sellerId, requestBody)
         return ResponseEntity.status(HttpStatus.CREATED).body(bankAccount)
