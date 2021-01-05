@@ -13,9 +13,9 @@ import br.com.blupay.smesp.core.providers.token.wallet.IoyBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.WalletResponse
-import br.com.blupay.smesp.core.providers.token.wallet.WalletRole
 import br.com.blupay.smesp.core.providers.token.wallet.WalletTokenResponse
 import br.com.blupay.smesp.core.services.JwsService
+import br.com.blupay.smesp.wallets.Wallet
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -123,16 +123,6 @@ class TokenController(
         return tokenService.moveToken(token, sgr, data.debtor, data.creditors)
     }
 
-    @PutMapping("/token/safe-move")
-    fun safeMoveToken(
-            auth: JwtAuthenticationToken,
-            @RequestBody data: SafeMoveTokenTestRequest
-    ): Mono<SafeMoveTokensRequest> {
-        val token = auth.token.tokenValue
-        val sgr = WalletData(data.debtor, signer.privateKey, signer.publicKey)
-        return tokenService.safeMoveToken(token, sgr, data.dueDate, data.debtor, data.ioyWallet, data.creditors)
-    }
-
     @PutMapping("/token/pay-ioy")
     fun payIoyToken(
             auth: JwtAuthenticationToken,
@@ -162,7 +152,7 @@ class TokenController(
 
     data class WalletRoleTestRequest(
             val wallet: UUID,
-            val role: WalletRole
+            val role: Wallet.Role
     )
 
     data class IssueTokensTestRequest(

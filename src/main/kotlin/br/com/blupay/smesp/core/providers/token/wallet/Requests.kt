@@ -3,8 +3,7 @@ package br.com.blupay.smesp.core.providers.token.wallet
 import br.com.blupay.smesp.core.providers.token.LocalWalletRequest
 import br.com.blupay.smesp.core.providers.token.TokenHeader
 import br.com.blupay.smesp.core.providers.token.TokenRequest
-
-enum class WalletRole { PAYER, RECEIVER, ADMIN, IOY, CASHIN, CASHOUT }
+import br.com.blupay.smesp.wallets.Wallet
 
 data class GetWalletRequest(
         val header: TokenHeader,
@@ -39,11 +38,11 @@ data class SettlementBalanceRequest(
 data class IssueWallet(
         val alias: String,
         val publicKey: String,
-        val role: WalletRole
+        val role: Wallet.Role
 )
 
 data class AddAndRemoveRoleRequest(
         val header: TokenHeader,
         val wallet: LocalWalletRequest,
-        val role: WalletRole
+        val role: Wallet.Role
 )

@@ -11,4 +11,6 @@ interface WalletRepository : JpaRepository<Wallet, UUID> {
     fun findByToken(token: UUID): Wallet?
 
     fun findByOwner(owner: UUID): Wallet?
+
+    fun findByRole(role: Wallet.Role): List<Wallet>?
 }

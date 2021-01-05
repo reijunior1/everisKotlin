@@ -13,7 +13,6 @@ import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.WalletProvider
 import br.com.blupay.smesp.core.providers.token.wallet.WalletResponse
-import br.com.blupay.smesp.core.providers.token.wallet.WalletRole
 import br.com.blupay.smesp.core.providers.token.wallet.WalletTokenResponse
 import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.wallets.Wallet
@@ -24,14 +23,14 @@ import java.util.UUID
 
 @Service
 class TokenWalletService(
-        @Value("service.token.type") private val tokenType: String,
+        @Value("\${service.token.type}") private val tokenType: String,
         private val walletProvider: WalletProvider,
         private val nodeProvider: NodeProvider
 ) {
     fun issueWallet(token: String, wallet: IssueWallet): Mono<WalletTokenResponse> =
         walletProvider.issueWallet(token, wallet)
 
-    fun addWalletRole(token: String, signer: WalletData, id: UUID, role: WalletRole): Mono<AddAndRemoveRoleRequest> {
+    fun addWalletRole(token: String, signer: WalletData, id: UUID, role: Wallet.Role): Mono<AddAndRemoveRoleRequest> {
         val addData = AddAndRemoveRoleRequest(
             TokenHeader(
                 action = "br.com.blupay.token.workflows.wallet.AddWalletRole",

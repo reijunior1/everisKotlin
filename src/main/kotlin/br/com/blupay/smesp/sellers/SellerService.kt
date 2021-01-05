@@ -6,7 +6,6 @@ import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
-import br.com.blupay.smesp.core.providers.token.wallet.WalletRole.RECEIVER
 import br.com.blupay.smesp.core.resources.sellers.api.SellerBankAccount
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerException
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerNotFoundException
@@ -51,10 +50,10 @@ class SellerService(
         }
 
         val credentialsCreated = identityProvider.createPersonCredentials(
-            token, sellerId, PersonCredentials.Request(
+                token, sellerId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.SELLERS}")
-            )
+        )
         )
 
         if (!credentialsCreated) {
@@ -78,31 +77,32 @@ class SellerService(
 
         val person = sellerList.stream().findFirst().orElseThrow { throw SellerNotFoundException(cnpj) }
         val sellerSaved = sellerRepository.save(
-            Seller(
-                id = person.id,
-                name = person.name,
-                cnpj = person.register,
-                email = person.email,
-                phone = person.phone,
-                banks = listOf()
-            )
+                Seller(
+                        id = person.id,
+                        name = person.name,
+                        cnpj = person.register,
+                        email = person.email,
+                        phone = person.phone,
+                        banks = listOf()
+                )
         )
 
         val pairKeys = jwsService.getKeyPairEncoded()
 
         val wallet = tokenWalletService.issueWallet(
-            jwt.tokenValue,
-            IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey.toString(), RECEIVER)
+                jwt.tokenValue,
+                IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey.toString(), Wallet.Role.RECEIVER)
         ).block()
         walletRepository.save(
-            Wallet(
-                UUID.randomUUID(),
-                sellerSaved.id!!,
-                wallet?.id!!,
-                SELLER,
-                pairKeys.publicKey.toString(),
-                pairKeys.privateKey.toString()
-            )
+                Wallet(
+                        UUID.randomUUID(),
+                        sellerSaved.id!!,
+                        wallet?.id!!,
+                        SELLER,
+                        Wallet.Role.RECEIVER,
+                        pairKeys.publicKey.toString(),
+                        pairKeys.privateKey.toString()
+                )
         )
 
         return createSellerCryptResponse(sellerSaved)
@@ -118,7 +118,10 @@ class SellerService(
     }
 
     fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
-        ?: throw SellerNotFoundException("$sellerId")
+            ?: throw SellerNotFoundException("$sellerId")
+
+    fun findByCnpj(cnpj: String) = sellerRepository.findByCnpj(cnpj)
+            ?: throw SellerNotFoundException(cnpj)
 
     fun createBankAccount(sellerId: UUID, requestBody: SellerBankAccount.Request): BankResponse? {
         val seller = findById(sellerId)
@@ -158,10 +161,5 @@ class SellerService(
             flow = seller.flow,
             walletId = walletId
         )
-    }
-
-    private fun findByCnpj(cnpj: String): Seller {
-        return sellerRepository.findByCnpj(cnpj)
-            ?: throw SellerNotFoundException(cnpj)
     }
 }

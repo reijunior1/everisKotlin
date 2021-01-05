@@ -26,6 +26,11 @@ class WalletService(
             ?: throw WalletNotFoundException(owner.toString())
     }
 
+    fun findByRole(role: Wallet.Role): List<Wallet> {
+        return walletRepository.findByRole(role)
+                ?: throw WalletNotFoundException(role.name)
+    }
+
     fun findByToken(token: UUID): Wallet {
         return walletRepository.findByToken(token)
             ?: throw WalletNotFoundException(token.toString())
@@ -46,13 +51,14 @@ class WalletService(
         return BalanceResponse(response.balance)
     }
 
-    fun save(owner: UUID, tokenId: UUID, type: UserTypes, publicKey: String, privateKey: String): Wallet {
+    fun save(owner: UUID, tokenId: UUID, type: UserTypes, role: Wallet.Role, publicKey: String, privateKey: String): Wallet {
         return walletRepository.save(
                 Wallet(
                         UUID.randomUUID(),
                         owner,
                         tokenId,
                         type,
+                        role,
                         publicKey,
                         privateKey
                 )

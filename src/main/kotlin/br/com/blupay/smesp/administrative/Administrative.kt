@@ -10,5 +10,6 @@ import javax.persistence.Table
 data class Administrative(
         @Id
         val id: UUID,
+        val document: String,
         val name: String
 )

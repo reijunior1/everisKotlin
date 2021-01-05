@@ -1,6 +1,6 @@
 package br.com.blupay.smesp.core.resources.administrative.api
 
-import br.com.blupay.smesp.core.resources.administrative.models.WalletAdminResponse
+import br.com.blupay.smesp.core.resources.administrative.models.AdminResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.PostMapping
@@ -11,9 +11,9 @@ object AdministrativeCreate {
     @RequestMapping("administrative")
     interface Controller {
 
-        @PostMapping("create")
-        fun create(
+        @PostMapping("admin-wallets")
+        fun adminWallets(
                 auth: JwtAuthenticationToken
-        ): Mono<ResponseEntity<List<WalletAdminResponse>>>
+        ): Mono<ResponseEntity<AdminResponse>>
     }
 }

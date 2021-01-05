@@ -1,5 +1,6 @@
 package br.com.blupay.smesp.core.providers.token.wallet
 
+import br.com.blupay.smesp.wallets.Wallet
 import java.util.UUID
 
 data class WalletTokenResponse(
@@ -11,7 +12,7 @@ data class WalletTokenResponse(
 
 data class WalletResponse(
         val wallet: WalletTokenResponse,
-        val roles: List<WalletRole>
+        val roles: List<Wallet.Role>
 )
 
 data class BalanceResponse(
