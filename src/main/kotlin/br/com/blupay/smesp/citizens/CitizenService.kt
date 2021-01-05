@@ -16,7 +16,10 @@ import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.CITIZEN
 import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.core.services.OwnerService
+import br.com.blupay.smesp.token.Creditor
+import br.com.blupay.smesp.token.TokenService
 import br.com.blupay.smesp.token.TokenWalletService
+import br.com.blupay.smesp.token.WalletData
 import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -32,7 +35,8 @@ class CitizenService(
         private val identityProvider: IdentityProvider,
         private val tokenWalletService: TokenWalletService,
         private val walletRepository: WalletRepository,
-        private val jwsService: JwsService
+        private val jwsService: JwsService,
+    private val tokenService: TokenService
 ) {
 
     fun createCredentials(citizenId: UUID, request: PasswordRequest, auth: AuthCredentials): CitizenResponse {
@@ -43,10 +47,10 @@ class CitizenService(
         }
 
         val credentialsCreated = identityProvider.createPersonCredentials(
-                auth.token, citizenId, PersonCredentials.Request(
+            auth.token, citizenId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.CITIZENS}")
-        )
+            )
         )
 
         if (!credentialsCreated) {
@@ -67,7 +71,6 @@ class CitizenService(
 
     fun findOneByCpf(cpf: String, auth: AuthCredentials): CitizenResponse {
         val citizen = citizenRepository.findByCpf(cpf)
-
         if (citizen != null) {
             return createCitizenCryptResponse(citizen)
         }
@@ -75,24 +78,26 @@ class CitizenService(
         val personList = identityProvider.peopleSearch(auth.token, PersonSearch.Query(register = cpf))
         val person = personList.stream().findFirst().orElseThrow { throw CitizenNotFoundException(cpf) }
         val citizenSaved = citizenRepository.save(
-                Citizen(
-                        person.id,
-                        person.name,
-                        person.register,
-                        person.email,
-                        person.phone,
-                        listOf()
-                )
+            Citizen(
+                person.id,
+                person.name,
+                person.register,
+                person.email,
+                person.phone,
+                listOf()
+            )
         )
 
         val pairKeys = jwsService.getKeyPairEncoded()
         val walletId = UUID.randomUUID()
 
         val wallet = tokenWalletService.issueWallet(
-                auth.token,
-                IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey.toString(), Wallet.Role.PAYER)
+            auth.token,
+            IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey.toString(), Wallet.Role.PAYER)
         ).block()
-        walletRepository.save(
+
+
+        val walletSaved = walletRepository.save(
                 Wallet(
                         walletId,
                         citizenSaved.id!!,
@@ -104,27 +109,40 @@ class CitizenService(
                 )
         )
 
+
+        transferBenefit(citizenSaved.id, walletSaved)
+
         return createCitizenCryptResponse(citizenSaved)
     }
 
-    fun getBenefit(citizenId: UUID): Long {
+    fun transferBenefit(citizenId: UUID, wallet: Wallet) {
+        val amount = getBenefit(citizenId)
+        tokenService.moveToken(
+            wallet.token.toString(),
+            WalletData(wallet.id!!, wallet.privateKey, wallet.publicKey),
+            wallet.token,
+            listOf(Creditor(wallet.id, amount))
+        )
+    }
+
+    fun findById(citizenId: UUID) = citizenRepository.findByIdOrNull(citizenId)
+        ?: throw CitizenNotFoundException("$citizenId")
+
+    private fun getBenefit(citizenId: UUID): Long {
         val citizen = findById(citizenId)
         val children = citizen.children
         return children.map { it.category.price }.sum()
     }
 
-    fun findById(citizenId: UUID) = citizenRepository.findByIdOrNull(citizenId)
-            ?: throw CitizenNotFoundException("$citizenId")
-
     private fun createCitizenCryptResponse(citizen: Citizen, wallet: Wallet? = null): CitizenResponse {
         return CitizenResponse(
-                id = citizen.id!!,
-                name = citizen.name,
-                cpf = citizen.cpf,
-                email = encoderManager.encrypt(citizen.email),
-                phone = encoderManager.encrypt(citizen.phone),
-                flow = citizen.flow,
-                walletId = wallet?.id
+            id = citizen.id!!,
+            name = citizen.name,
+            cpf = citizen.cpf,
+            email = encoderManager.encrypt(citizen.email),
+            phone = encoderManager.encrypt(citizen.phone),
+            flow = citizen.flow,
+            walletId = wallet?.id
         )
     }
 }
