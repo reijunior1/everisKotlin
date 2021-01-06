@@ -2,6 +2,8 @@
 app:
   name: smesp
   environment: ${ENVIRONMENT:local}
+  config:
+    min-score: 0.6
 
 # Server Configuration
 server:
@@ -94,11 +96,15 @@ provider:
         safe-move: /token/safe-move
         pay-ioy: /token/pay-ioy
         settlement-order: /token/settlement-order
-  host:
-    identity: http://localhost:9110/api/v1
-  endpoint:
-    people: /people
-    people-credentials: /people/{personId}/credentials
+  identity:
+    host: http://localhost:9110/api/v1
+    endpoint:
+      people:
+        root: /people
+        credentials: /people/{personId}/credentials
+      validations:
+        root: /validations
+        verify-rules: /validations/verify-rules
 
 encoder:
   key: rYihXjpiQQXqwwa

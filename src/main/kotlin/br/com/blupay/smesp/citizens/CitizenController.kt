@@ -4,13 +4,16 @@ import br.com.blupay.blubasemodules.core.extensions.authCredentials
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenCreate
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenImport
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenRead
+import br.com.blupay.smesp.core.resources.citizens.api.CitizenStatus
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
+import br.com.blupay.smesp.core.resources.citizens.models.CitizenStatusResponse
 import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.annotation.security.RolesAllowed
 
@@ -20,7 +23,8 @@ class CitizenController(
         private val citizenImportService: CitizenImportService
 ) : CitizenCreate.Controller,
     CitizenRead.Controller,
-    CitizenImport.Controller {
+    CitizenImport.Controller,
+    CitizenStatus.Controller {
 
     @RolesAllowed("ROLE_CITIZEN")
     override fun findOne(citizenId: UUID, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
@@ -44,5 +48,11 @@ class CitizenController(
 
     override fun importCsv(file: MultipartFile) {
         citizenImportService.parseToModel(file)
+    }
+
+    @RolesAllowed("ROLE_CITIZEN")
+    override fun checkStatus(citizenId: UUID, auth: JwtAuthenticationToken): Mono<ResponseEntity<CitizenStatusResponse>> {
+        return citizenService.checkStatus(citizenId, auth.authCredentials)
+            .map { response -> ResponseEntity.ok(response) }
     }
 }

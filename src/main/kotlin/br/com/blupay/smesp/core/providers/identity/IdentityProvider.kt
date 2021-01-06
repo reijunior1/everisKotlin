@@ -2,9 +2,12 @@ package br.com.blupay.smesp.core.providers.identity
 
 import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
+import br.com.blupay.blubasemodules.identity.validations.ValidationCheckStatus
+import br.com.blupay.blubasemodules.shared.validations.enums.ValidationType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Service
@@ -24,5 +27,10 @@ class IdentityProvider(
         val personList = identityClient.peopleSearch(token, query)?.block()
                 ?: throw IdentityException("Couldn't get a list of people")
         return personList.data
+    }
+
+    fun verifyRules(token: String, typeRules: List<ValidationType>): Mono<ValidationCheckStatus.ValidationRuleResponse> {
+        logger.info("Getting validations status rules")
+        return identityClient.verifyRules(token, typeRules)
     }
 }

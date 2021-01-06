@@ -1,14 +1,20 @@
 package br.com.blupay.smesp.citizens
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
+import br.com.blupay.blubasemodules.core.models.ResponseStatus
+import br.com.blupay.blubasemodules.core.models.ResponseStatus.FAILED
+import br.com.blupay.blubasemodules.core.models.ResponseStatus.PROCESSED
 import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
+import br.com.blupay.blubasemodules.shared.validations.enums.ValidationType
+import br.com.blupay.blubasemodules.shared.validations.models.ValidationStatusResponse
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenException
 import br.com.blupay.smesp.core.resources.citizens.exceptions.CitizenNotFoundException
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
+import br.com.blupay.smesp.core.resources.citizens.models.CitizenStatusResponse
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
@@ -22,13 +28,19 @@ import br.com.blupay.smesp.token.TokenWalletService
 import br.com.blupay.smesp.token.WalletData
 import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.security.auth.login.CredentialException
+import kotlin.streams.toList
 
 @Service
 class CitizenService(
+    @Value("\${app.config.min-score}") private val minScore: Double,
     private val ownerService: OwnerService,
     private val citizenRepository: CitizenRepository,
     private val encoderManager: EncoderManager,
@@ -38,6 +50,8 @@ class CitizenService(
     private val jwsService: JwsService,
     private val tokenService: TokenService
 ) {
+
+    private val logger: Logger = LoggerFactory.getLogger(CitizenService::class.java)
 
     fun createCredentials(citizenId: UUID, request: PasswordRequest, auth: AuthCredentials): CitizenResponse {
         val citizen = findById(citizenId)
@@ -73,6 +87,32 @@ class CitizenService(
 
         val updatedCitizen = citizenRepository.save(citizen.copy(flow = VALIDATION))
         return createCitizenCryptResponse(updatedCitizen)
+    }
+
+    fun checkStatus(citizenId: UUID, auth: AuthCredentials): Mono<CitizenStatusResponse> {
+        ownerService.userOwns(auth, citizenId)
+        return identityProvider.verifyRules(auth.token, listOf(ValidationType.SELFIE, ValidationType.COMPARE))
+            .map { validationRules ->
+                val validations = validationRules.validations.stream()
+                    .filter { it != null }
+                    .map {
+                        if (PROCESSED == it!!.status) {
+                            val status = if (it.score!! < minScore) FAILED else it.status
+                            it.copy(status = status)
+                        } else {
+                            it
+                        }
+                    }.toList()
+                validations
+            }.flatMap { validations ->
+                val status = validations.stream()
+                    .reduce { acc: ValidationStatusResponse?, item: ValidationStatusResponse? ->
+                        if (PROCESSED != acc?.status) acc else item
+                    }
+                    .map { it?.status }
+                    .orElse(ResponseStatus.PENDING)
+                Mono.just(CitizenStatusResponse(status, validations))
+            }
     }
 
     fun findOne(citizenId: UUID, auth: AuthCredentials): CitizenResponse {
@@ -120,7 +160,7 @@ class CitizenService(
                 Wallet.Role.PAYER,
                 pairKeys.publicKey,
                 pairKeys.privateKey,
-                ""
+            ""
             )
         )
 
