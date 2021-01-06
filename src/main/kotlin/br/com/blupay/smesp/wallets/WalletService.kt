@@ -1,8 +1,8 @@
 package br.com.blupay.smesp.wallets
 
-import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
 import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
+import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.smesp.core.resources.wallets.exceptions.BalanceNotFoundException
 import br.com.blupay.smesp.core.resources.wallets.exceptions.WalletNotFoundException
 import br.com.blupay.smesp.core.services.OwnerService
@@ -54,13 +54,13 @@ class WalletService(
     fun save(owner: UUID, tokenId: UUID, type: UserTypes, role: Wallet.Role, publicKey: String, privateKey: String): Wallet {
         return walletRepository.save(
                 Wallet(
-                        UUID.randomUUID(),
-                        owner,
-                        tokenId,
-                        type,
-                        role,
-                        publicKey,
-                        privateKey
+                    UUID.randomUUID(),
+                    owner,
+                    tokenId,
+                    type,
+                    role,publicKey,
+                    privateKey,
+                    ""
                 )
         )
     }

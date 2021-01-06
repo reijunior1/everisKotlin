@@ -1,0 +1,1 @@
+ALTER TABLE wallets ADD COLUMN pin VARCHAR(100);

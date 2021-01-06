@@ -29,13 +29,13 @@ import javax.security.auth.login.CredentialException
 
 @Service
 class CitizenService(
-        private val ownerService: OwnerService,
-        private val citizenRepository: CitizenRepository,
-        private val encoderManager: EncoderManager,
-        private val identityProvider: IdentityProvider,
-        private val tokenWalletService: TokenWalletService,
-        private val walletRepository: WalletRepository,
-        private val jwsService: JwsService,
+    private val ownerService: OwnerService,
+    private val citizenRepository: CitizenRepository,
+    private val encoderManager: EncoderManager,
+    private val identityProvider: IdentityProvider,
+    private val tokenWalletService: TokenWalletService,
+    private val walletRepository: WalletRepository,
+    private val jwsService: JwsService,
     private val tokenService: TokenService
 ) {
 
@@ -55,6 +55,20 @@ class CitizenService(
 
         if (!credentialsCreated) {
             throw CredentialException("Citizen $citizenId credentials were not created")
+        }
+
+        val pin = encoderManager.encrypt(request.password.substring(0, 4))
+        val wallet = walletRepository.findByOwner(citizenId)
+        if (wallet != null) {
+            walletRepository.save(
+                wallet.copy(
+                    id = wallet.id,
+                    owner = wallet.owner,
+                    token = wallet.token,
+                    type = wallet.type,
+                    pin = pin
+                )
+            )
         }
 
         val updatedCitizen = citizenRepository.save(citizen.copy(flow = VALIDATION))
@@ -93,20 +107,21 @@ class CitizenService(
 
         val wallet = tokenWalletService.issueWallet(
             auth.token,
-            IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey.toString(), Wallet.Role.PAYER)
+            IssueWallet(citizenSaved.id.toString(), pairKeys.publicKey, Wallet.Role.PAYER)
         ).block()
 
 
         val walletSaved = walletRepository.save(
-                Wallet(
-                        walletId,
-                        citizenSaved.id!!,
-                        wallet?.id!!,
-                        CITIZEN,
-                        Wallet.Role.PAYER,
-                        pairKeys.publicKey,
-                        pairKeys.privateKey
-                )
+            Wallet(
+                walletId,
+                citizenSaved.id!!,
+                wallet?.id!!,
+                CITIZEN,
+                Wallet.Role.PAYER,
+                pairKeys.publicKey,
+                pairKeys.privateKey,
+                ""
+            )
         )
 
 

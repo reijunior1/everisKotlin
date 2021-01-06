@@ -50,14 +50,28 @@ class SellerService(
         }
 
         val credentialsCreated = identityProvider.createPersonCredentials(
-                token, sellerId, PersonCredentials.Request(
+            token, sellerId, PersonCredentials.Request(
                 password = request.password,
                 groups = listOf("${UserGroups.SELLERS}")
-        )
+            )
         )
 
         if (!credentialsCreated) {
             throw CredentialException("Citizen $sellerId credentials were not created")
+        }
+
+        val pin = encoderManager.encrypt(request.password.substring(0, 4))
+        val wallet = walletRepository.findByOwner(sellerId)
+        if (wallet != null) {
+            walletRepository.save(
+                wallet.copy(
+                    id = wallet.id,
+                    owner = wallet.owner,
+                    token = wallet.token,
+                    type = wallet.type,
+                    pin = pin
+                )
+            )
         }
 
         val updatedSeller = sellerRepository.save(seller.copy(flow = VALIDATION))
@@ -77,32 +91,33 @@ class SellerService(
 
         val person = sellerList.stream().findFirst().orElseThrow { throw SellerNotFoundException(cnpj) }
         val sellerSaved = sellerRepository.save(
-                Seller(
-                        id = person.id,
-                        name = person.name,
-                        cnpj = person.register,
-                        email = person.email,
-                        phone = person.phone,
-                        banks = listOf()
-                )
+            Seller(
+                id = person.id,
+                name = person.name,
+                cnpj = person.register,
+                email = person.email,
+                phone = person.phone,
+                banks = listOf()
+            )
         )
 
         val pairKeys = jwsService.getKeyPairEncoded()
 
         val wallet = tokenWalletService.issueWallet(
-                jwt.tokenValue,
-                IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey.toString(), Wallet.Role.RECEIVER)
+            jwt.tokenValue,
+            IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey, Wallet.Role.RECEIVER)
         ).block()
         walletRepository.save(
-                Wallet(
-                        UUID.randomUUID(),
-                        sellerSaved.id!!,
-                        wallet?.id!!,
-                        SELLER,
-                        Wallet.Role.RECEIVER,
-                        pairKeys.publicKey.toString(),
-                        pairKeys.privateKey.toString()
-                )
+            Wallet(
+                UUID.randomUUID(),
+                sellerSaved.id!!,
+                wallet?.id!!,
+                SELLER,
+                Wallet.Role.RECEIVER,
+                pairKeys.publicKey,
+                pairKeys.privateKey,
+                ""
+            )
         )
 
         return createSellerCryptResponse(sellerSaved)
@@ -118,10 +133,7 @@ class SellerService(
     }
 
     fun findById(sellerId: UUID) = sellerRepository.findByIdOrNull(sellerId)
-            ?: throw SellerNotFoundException("$sellerId")
-
-    fun findByCnpj(cnpj: String) = sellerRepository.findByCnpj(cnpj)
-            ?: throw SellerNotFoundException(cnpj)
+        ?: throw SellerNotFoundException("$sellerId")
 
     fun createBankAccount(sellerId: UUID, requestBody: SellerBankAccount.Request): BankResponse? {
         val seller = findById(sellerId)
@@ -133,7 +145,8 @@ class SellerService(
                 account = requestBody.account,
                 seller = seller,
                 pix = requestBody.pix
-        ))
+            )
+        )
         return createBankResponse(bankAccountSaved)
     }
 
@@ -142,13 +155,18 @@ class SellerService(
         return banks.map { createBankResponse(it) }
     }
 
+    fun findByCnpj(cnpj: String): Seller {
+        return sellerRepository.findByCnpj(cnpj)
+            ?: throw SellerNotFoundException(cnpj)
+    }
+
     private fun createBankResponse(bankAccount: BankAccount) = BankResponse(
-            bankAccount.id,
-            bankAccount.name,
-            bankAccount.cnpj,
-            bankAccount.agency,
-            bankAccount.account,
-            bankAccount.pix
+        bankAccount.id,
+        bankAccount.name,
+        bankAccount.cnpj,
+        bankAccount.agency,
+        bankAccount.account,
+        bankAccount.pix
     )
 
     private fun createSellerCryptResponse(seller: Seller, walletId: UUID? = null): SellerResponse {
