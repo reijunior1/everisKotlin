@@ -29,6 +29,8 @@ class TransactionService(
         val ioyWallet = walletService.findByRole(Wallet.Role.IOY).first()
         val debtorWallet = walletService.findById(debtorId)
 
+        val debtor = citizenService.findById(debtorWallet.owner)
+
         // TODO: validar pin e testar a transferência
 
         return tokenService.safeMoveToken(
@@ -45,20 +47,51 @@ class TransactionService(
                 )
         ).map {
             val date = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.header.date!!), TimeZone.getDefault().toZoneId())
-            val transaction = repository.save(
-                    Transaction(
-                            UUID.randomUUID(),
-                            it.header.hash!!,
-                            date,
-                            debtorWallet,
-                            creditorWallet,
-                            amount,
-                            Transaction.TransactionType.SAFE_MOVE_CREDITOR
-                    )
+            val transaction = save(
+                    id = UUID.randomUUID(),
+                    hash = it.header.hash!!,
+                    date = date,
+                    debtorName = debtor.name,
+                    debtor = debtorWallet,
+                    creditorName = creditor.name,
+                    creditor = creditorWallet,
+                    amount = amount,
+                    type = Transaction.Type.SAFE_MOVE_CREDITOR,
+                    status = Transaction.Status.NEW
             )
             PaymentResponse(
                     transaction
             )
         }
+    }
+
+    fun save(
+            id: UUID,
+            hash: String,
+            date: LocalDateTime,
+            debtorName: String? = null,
+            debtor: Wallet,
+            creditorName: String? = null,
+            creditor: Wallet,
+            amount: Long,
+            type: Transaction.Type,
+            receipt: String? = null,
+            status: Transaction.Status
+    ): Transaction {
+        return repository.save(
+                Transaction(
+                        id = id,
+                        hash = hash,
+                        date = date,
+                        debtorName = debtorName,
+                        debtorWallet = debtor,
+                        creditorName = creditorName,
+                        creditorWallet = creditor,
+                        amount = amount,
+                        type = type,
+                        receipt = receipt,
+                        status = status
+                )
+        )
     }
 }

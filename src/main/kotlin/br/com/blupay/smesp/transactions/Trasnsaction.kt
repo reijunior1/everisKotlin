@@ -1,6 +1,5 @@
 package br.com.blupay.smesp.transactions
 
-import br.com.blupay.smesp.sellers.Seller
 import br.com.blupay.smesp.wallets.Wallet
 import java.time.LocalDateTime
 import java.util.UUID
@@ -18,13 +17,19 @@ data class Transaction(
         val id: UUID,
         val hash: String,
         val date: LocalDateTime,
+        val debtorName: String? = null,
         @ManyToOne
-        val debtor: Wallet,
+        val debtorWallet: Wallet,
+        val creditorName: String? = null,
         @ManyToOne
-        val creditor: Wallet,
+        val creditorWallet: Wallet,
         val amount: Long,
         @Enumerated(EnumType.STRING)
-        val type: TransactionType
+        val type: Type,
+        val receipt: String? = null,
+        @Enumerated(EnumType.STRING)
+        val status: Status
 ) {
-    enum class TransactionType { SAFE_MOVE_CREDITOR }
+    enum class Type { SAFE_MOVE_CREDITOR }
+    enum class Status { NEW }
 }
