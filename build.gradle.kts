@@ -83,6 +83,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("io.projectreactor.addons:reactor-extra:3.4.0")
     implementation("com.google.code.gson:gson:2.8.6")
+    implementation("com.opencsv:opencsv:5.3")
 }
 
 publishing {

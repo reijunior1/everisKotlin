@@ -17,6 +17,14 @@ data class Child(
     @ManyToOne
     val category: Category,
     @ManyToOne
-    val citizen: Citizen
-)
+    val citizen: Citizen?
+) {
+    constructor(name: String, category: Category) : this(
+        UUID.randomUUID(),
+        name,
+        category,
+        null
+    )
+
+}
 

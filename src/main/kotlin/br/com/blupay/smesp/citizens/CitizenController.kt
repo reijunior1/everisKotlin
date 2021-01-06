@@ -2,6 +2,7 @@ package br.com.blupay.smesp.citizens
 
 import br.com.blupay.blubasemodules.core.extensions.authCredentials
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenCreate
+import br.com.blupay.smesp.core.resources.citizens.api.CitizenImport
 import br.com.blupay.smesp.core.resources.citizens.api.CitizenRead
 import br.com.blupay.smesp.core.resources.citizens.models.CitizenResponse
 import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
@@ -9,13 +10,17 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 import javax.annotation.security.RolesAllowed
 
 @RestController
 class CitizenController(
-        val citizenService: CitizenService
-) : CitizenCreate.Controller, CitizenRead.Controller {
+        val citizenService: CitizenService,
+        private val citizenImportService: CitizenImportService
+) : CitizenCreate.Controller,
+    CitizenRead.Controller,
+    CitizenImport.Controller {
 
     @RolesAllowed("ROLE_CITIZEN")
     override fun findOne(citizenId: UUID, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
@@ -35,5 +40,9 @@ class CitizenController(
                                    auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
         val citizen = citizenService.createCredentials(citizenId, request, auth.authCredentials)
         return ResponseEntity.status(HttpStatus.CREATED).body(citizen)
+    }
+
+    override fun importCsv(file: MultipartFile) {
+        citizenImportService.parseToModel(file)
     }
 }
