@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface AdministrativeRepository : JpaRepository<Administrative, UUID>
+interface AdministrativeRepository : JpaRepository<Administrative, UUID> {
+    fun findByDocument(document: String): Administrative?
+}

@@ -19,10 +19,10 @@ data class Transaction(
         val date: LocalDateTime,
         val debtorName: String? = null,
         @ManyToOne
-        val debtorWallet: Wallet,
+        val debtorWallet: Wallet? = null,
         val creditorName: String? = null,
         @ManyToOne
-        val creditorWallet: Wallet,
+        val creditorWallet: Wallet? = null,
         val amount: Long,
         @Enumerated(EnumType.STRING)
         val type: Type,
@@ -30,6 +30,6 @@ data class Transaction(
         @Enumerated(EnumType.STRING)
         val status: Status
 ) {
-    enum class Type { SAFE_MOVE_CREDITOR }
+    enum class Type { CASHIN, SAFE_MOVE_CREDITOR }
     enum class Status { NEW }
 }

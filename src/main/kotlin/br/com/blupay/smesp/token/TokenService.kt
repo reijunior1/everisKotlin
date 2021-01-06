@@ -25,12 +25,12 @@ class TokenService(
         private val nodeProvider: NodeProvider,
         private val tokenProvider: TokenProvider
 ) {
-    fun issueToken(token: String, signer: WalletData, id: UUID, amount: Long, maxSize: Long): Mono<IssueTokensRequest> {
+    fun issueToken(token: String, signer: Wallet, id: UUID, amount: Long, maxSize: Long): Mono<IssueTokensRequest> {
         return nodeProvider.getPublicKey(token).map { node ->
             IssueTokensRequest(
                     TokenHeader(
                             action = "br.com.blupay.token.workflows.token.IssueTokens",
-                            wallet = signer.id
+                            wallet = signer.token
                     ),
                     WalletRequest(
                             id,

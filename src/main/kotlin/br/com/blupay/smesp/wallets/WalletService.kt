@@ -31,6 +31,11 @@ class WalletService(
                 ?: throw WalletNotFoundException(role.name)
     }
 
+    fun findByOwnerAndRole(owner: UUID, role: Wallet.Role): List<Wallet> {
+        return walletRepository.findByOwnerAndRole(owner, role)
+                ?: throw WalletNotFoundException("${owner}/${role.name}")
+    }
+
     fun findByToken(token: UUID): Wallet {
         return walletRepository.findByToken(token)
             ?: throw WalletNotFoundException(token.toString())

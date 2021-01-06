@@ -23,6 +23,7 @@ data class Wallet(
         val publicKey: String,
         @JsonIgnore
         val privateKey: String,
+        @JsonIgnore
         val pin: String
 ) {
         enum class Role { PAYER, RECEIVER, ADMIN, IOY, CASHIN, CASHOUT }

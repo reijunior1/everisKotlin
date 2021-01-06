@@ -2,6 +2,7 @@ package br.com.blupay.smesp.administrative
 
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.resources.administrative.exceptions.AdministrativeEntitiesAlreadyExistException
+import br.com.blupay.smesp.core.resources.administrative.exceptions.AdministrativeNotFoundException
 import br.com.blupay.smesp.core.resources.administrative.models.AdminResponse
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.smesp.core.services.JwsService
@@ -23,14 +24,19 @@ class AdministrativeService(
         private val walletService: WalletService,
         private val tokenWalletService: TokenWalletService
 ) {
+
+    fun findByDocument(document: String): Administrative {
+        return repository.findByDocument(document) ?: throw AdministrativeNotFoundException(document)
+    }
+
     fun create(token: String, document: String): Mono<AdminResponse> = createEntity(document, "Blupay")
             .flatMap { administrative ->
                 createWallet(token, administrative.id, "admin", Wallet.Role.ADMIN)
                         .flatMap { adminWallet ->
 
-                            val cashinWallet = createWallet(token, administrative.id, "cashin", Wallet.Role.CASHIN) // não está transferindo para PAYER - mudar
-                            val cashoutWallet = createWallet(token, administrative.id, "cashout", Wallet.Role.CASHOUT) // precisa ser receiver - mmudar
-                            val ioyWallet = createWallet(token, administrative.id, "ioy", Wallet.Role.IOY) // precisa ser payer PAYER - mudar
+                            val cashinWallet = createWallet(token, administrative.id, "cashin", Wallet.Role.CASHIN)
+                            val cashoutWallet = createWallet(token, administrative.id, "cashout", Wallet.Role.CASHOUT)
+                            val ioyWallet = createWallet(token, administrative.id, "ioy", Wallet.Role.IOY)
 
                             Mono.zip(cashinWallet, cashoutWallet, ioyWallet)
                                     .map { (cashinWallet, cashoutWallet, ioyWallet) -> arrayOf(adminWallet, cashinWallet, cashoutWallet, ioyWallet) }
@@ -81,5 +87,4 @@ class AdministrativeService(
             )
         }
     }
-
 }

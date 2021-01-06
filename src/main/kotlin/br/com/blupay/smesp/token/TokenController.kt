@@ -104,15 +104,6 @@ class TokenController(
         return tokenWalletService.addWalletRole(token, signer, data.wallet, data.role)
     }
 
-    @PostMapping("/token/issue")
-    fun issueToken(
-            auth: JwtAuthenticationToken,
-            @RequestBody data: IssueTokensTestRequest
-    ): Mono<IssueTokensRequest> {
-        val token = auth.token.tokenValue
-        return tokenService.issueToken(token, signer, data.wallet, data.amount, data.maxSize)
-    }
-
     @PutMapping("/token/move")
     fun moveToken(
             auth: JwtAuthenticationToken,
