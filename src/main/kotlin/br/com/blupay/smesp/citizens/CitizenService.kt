@@ -1,13 +1,11 @@
 package br.com.blupay.smesp.citizens
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
-import br.com.blupay.blubasemodules.core.models.ResponseStatus
 import br.com.blupay.blubasemodules.core.models.ResponseStatus.FAILED
 import br.com.blupay.blubasemodules.core.models.ResponseStatus.PROCESSED
 import br.com.blupay.blubasemodules.identity.people.PersonCredentials
 import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.blubasemodules.shared.validations.enums.ValidationType
-import br.com.blupay.blubasemodules.shared.validations.models.ValidationStatusResponse
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
@@ -36,7 +34,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.security.auth.login.CredentialException
-import kotlin.streams.toList
 
 @Service
 class CitizenService(
@@ -89,30 +86,16 @@ class CitizenService(
         return createCitizenCryptResponse(updatedCitizen)
     }
 
-    fun checkStatus(citizenId: UUID, auth: AuthCredentials): Mono<CitizenStatusResponse> {
+    fun hasPermissionToDoTransaction(token: String, citizenId: UUID): Boolean {
+        return verifyRules(token, citizenId)
+            .map { PROCESSED != it.status }
+            .blockOptional()
+            .orElse(false)
+    }
+
+    fun checkStatus(citizenId: UUID, auth: AuthCredentials, isOtherUser: Boolean = false): Mono<CitizenStatusResponse> {
         ownerService.userOwns(auth, citizenId)
-        return identityProvider.verifyRules(auth.token, listOf(ValidationType.SELFIE, ValidationType.COMPARE))
-            .map { validationRules ->
-                val validations = validationRules.validations.stream()
-                    .filter { it != null }
-                    .map {
-                        if (PROCESSED == it!!.status) {
-                            val status = if (it.score!! < minScore) FAILED else it.status
-                            it.copy(status = status)
-                        } else {
-                            it
-                        }
-                    }.toList()
-                validations
-            }.flatMap { validations ->
-                val status = validations.stream()
-                    .reduce { acc: ValidationStatusResponse?, item: ValidationStatusResponse? ->
-                        if (PROCESSED != acc?.status) acc else item
-                    }
-                    .map { it?.status }
-                    .orElse(ResponseStatus.PENDING)
-                Mono.just(CitizenStatusResponse(status, validations))
-            }
+        return verifyRules(auth.token)
     }
 
     fun findOne(citizenId: UUID, auth: AuthCredentials): CitizenResponse {
@@ -160,10 +143,9 @@ class CitizenService(
                 Wallet.Role.PAYER,
                 pairKeys.publicKey,
                 pairKeys.privateKey,
-            ""
+                ""
             )
         )
-
 
         transferBenefit(citizenSaved.id, walletSaved)
 
@@ -185,8 +167,7 @@ class CitizenService(
 
     private fun getBenefit(citizenId: UUID): Long {
         val citizen = findById(citizenId)
-        val children = citizen.children
-        return children.map { it.category.price }.sum()
+        return citizen.children.map { it.category.price }.sum()
     }
 
     private fun createCitizenCryptResponse(citizen: Citizen, wallet: Wallet? = null): CitizenResponse {
@@ -199,5 +180,24 @@ class CitizenService(
             flow = citizen.flow,
             walletId = wallet?.id
         )
+    }
+
+    private fun verifyRules(token: String, fromCitizenId: UUID? = null): Mono<CitizenStatusResponse> {
+        return identityProvider.verifyRules(token, listOf(ValidationType.SELFIE, ValidationType.COMPARE), fromCitizenId)
+            .map { validationRules ->
+                validationRules.validations
+                    .filterNotNull()
+                    .map {
+                        if (PROCESSED == it.status) {
+                            val status = if (it.score!! < minScore) FAILED else it.status
+                            it.copy(status = status)
+                        } else {
+                            it
+                        }
+                    }.toList()
+            }.map { validations ->
+                val status = validations.reduce { acc, item -> if (PROCESSED != acc.status) acc else item }.status
+                CitizenStatusResponse(status, validations)
+            }
     }
 }

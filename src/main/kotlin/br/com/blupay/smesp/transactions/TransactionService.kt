@@ -34,6 +34,11 @@ class TransactionService(
 
         val debtor = citizenService.findById(debtorWallet.owner)
 
+        /* TODO: validar se cidadão tem permissão para efetuar uma transação
+         *   val hasPermission = citizenService.hasPermissionToDoTransaction(token, debtorId)
+         *    if (!hasPermission) { throw Exception("Citizen has not permission") }
+         */
+
         // TODO: validar pin e testar a transferência
 
         return tokenService.safeMoveToken(

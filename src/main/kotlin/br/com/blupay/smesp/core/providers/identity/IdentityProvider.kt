@@ -29,8 +29,8 @@ class IdentityProvider(
         return personList.data
     }
 
-    fun verifyRules(token: String, typeRules: List<ValidationType>): Mono<ValidationCheckStatus.ValidationRuleResponse> {
+    fun verifyRules(token: String, typeRules: List<ValidationType>, personId: UUID? = null): Mono<ValidationCheckStatus.ValidationRuleResponse> {
         logger.info("Getting validations status rules")
-        return identityClient.verifyRules(token, typeRules)
+        return identityClient.verifyRules(token, typeRules, personId)
     }
 }

@@ -39,12 +39,18 @@ class IdentityClient(
 
     fun verifyRules(
         bearerToken: String,
-        typeRules: List<ValidationType>
+        typeRules: List<ValidationType>,
+        personId: UUID?
     ): Mono<ValidationCheckStatus.ValidationRuleResponse> {
         return get(endpointVerifyRules)
             .contentType(MediaType.APPLICATION_JSON)
             .authBearer(bearerToken)
-            .uri { uriBuilder -> typeRules.forEach { uriBuilder.queryParam("type", it) } }
+            .uri { uriBuilder ->
+                typeRules.forEach { uriBuilder.queryParam("type", it) }
+                if (personId != null) {
+                    uriBuilder.queryParam("personId", personId)
+                }
+            }
             .send(ValidationCheckStatus.ValidationRuleResponse::class.java)!!
     }
 }
