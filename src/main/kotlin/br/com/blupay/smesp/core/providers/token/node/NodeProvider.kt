@@ -12,10 +12,10 @@ class NodeProvider(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(NodeProvider::class.java)
 
-    fun getPublicKey(token: String): Mono<NodeResponse> {
+    fun getPublicKey(bearerToken: String): Mono<NodeResponse> {
         logger.info("Get node public key")
-        return nodeClient.publicKey(token)
-                ?: throw TokenException("GET_PUBLIC_KEY_ERROR")
+        return nodeClient.publicKey(bearerToken)
+            ?: throw TokenException("GET_PUBLIC_KEY_ERROR")
     }
 
     fun getParty(token: String, pk: String): Mono<NodeResponse> {

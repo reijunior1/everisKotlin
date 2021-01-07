@@ -1,7 +1,9 @@
 package br.com.blupay.smesp.wallets
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
+import br.com.blupay.smesp.core.providers.token.TokenException
 import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
+import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest.SettlementType.RECEIVER
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.smesp.core.resources.wallets.exceptions.BalanceNotFoundException
 import br.com.blupay.smesp.core.resources.wallets.exceptions.WalletNotFoundException
@@ -63,10 +65,17 @@ class WalletService(
                     owner,
                     tokenId,
                     type,
-                    role,publicKey,
+                    role, publicKey,
                     privateKey,
                     ""
                 )
         )
+    }
+
+    fun getSettlementBalance(id: UUID, auth: AuthCredentials): BalanceResponse {
+        val wallet = walletRepository.findById(id).orElseThrow { WalletNotFoundException(id.toString()) }
+        ownerService.userOwns(auth, wallet.owner)
+        return tokenWalletService.getSettlementBalance(auth.token, wallet, wallet.token, RECEIVER).block()
+            ?: throw TokenException()
     }
 }

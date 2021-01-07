@@ -18,5 +18,12 @@ object WalletRead {
 
         @GetMapping("{id}/balance")
         fun getBalance(@PathVariable("id") id: UUID, auth: JwtAuthenticationToken): ResponseEntity<BalanceResponse>
+
+        @GetMapping("{id}/settlement-balance")
+        fun getSettlementBalance(
+            @PathVariable("id")
+            id: UUID,
+            auth: JwtAuthenticationToken,
+        ): ResponseEntity<BalanceResponse>
     }
 }

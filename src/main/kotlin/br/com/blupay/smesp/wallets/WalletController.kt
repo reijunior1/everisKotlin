@@ -19,4 +19,12 @@ class WalletController(private val walletService: WalletService) : WalletRead.Co
         val balance = walletService.getBalance(id, auth.authCredentials)
         return ResponseEntity.ok(balance)
     }
+
+    override fun getSettlementBalance(
+        id: UUID,
+        auth: JwtAuthenticationToken
+    ): ResponseEntity<BalanceResponse> {
+        val balance = walletService.getSettlementBalance(id, auth.authCredentials)
+        return ResponseEntity.ok(balance)
+    }
 }

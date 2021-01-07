@@ -5,13 +5,11 @@ import br.com.blupay.smesp.core.providers.token.token.IoyMoveTokensRequest
 import br.com.blupay.smesp.core.providers.token.token.IssueTokensRequest
 import br.com.blupay.smesp.core.providers.token.token.MoveTokensRequest
 import br.com.blupay.smesp.core.providers.token.token.RedeemTokensRequest
-import br.com.blupay.smesp.core.providers.token.token.SafeMoveTokensRequest
 import br.com.blupay.smesp.core.providers.token.token.SettlementMoveTokensRequest
 import br.com.blupay.smesp.core.providers.token.wallet.AddAndRemoveRoleRequest
 import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
 import br.com.blupay.smesp.core.providers.token.wallet.IoyBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
-import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.WalletResponse
 import br.com.blupay.smesp.core.providers.token.wallet.WalletTokenResponse
 import br.com.blupay.smesp.core.services.JwsService
@@ -74,16 +72,6 @@ class TokenController(
     ): Mono<BalanceResponse> {
         val token = auth.token.tokenValue
         return tokenWalletService.getIoyBalance(token, signer, id, type)
-    }
-
-    @GetMapping("/wallet/settlement-balance")
-    fun getWalletSettlementBalance(
-            auth: JwtAuthenticationToken,
-            @RequestParam("id") id: UUID,
-            @RequestParam("type") type: SettlementBalanceRequest.SettlementType
-    ): Mono<BalanceResponse> {
-        val token = auth.token.tokenValue
-        return tokenWalletService.getSettlementBalance(token, signer, id, type)
     }
 
     @PostMapping("/wallet/issue")

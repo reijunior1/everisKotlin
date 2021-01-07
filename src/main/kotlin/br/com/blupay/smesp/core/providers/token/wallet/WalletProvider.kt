@@ -21,19 +21,19 @@ class WalletProvider(
     }
 
     fun balance(token: String, data: BalanceRequest, privateKey: String, publicKey: String): Mono<BalanceResponse> {
-        logger.info("Get Wallet Balacne")
+        logger.info("Get Wallet Balance")
         val signData = jwsService.sign(data, privateKey, publicKey)
         return walletClient.balance(token, signData) ?: throw TokenException("GET_WALLET_BALANCE_ERROR")
     }
 
     fun ioyBalance(token: String, data: IoyBalanceRequest, privateKey: String, publicKey: String): Mono<BalanceResponse> {
-        logger.info("Get IOY Wallet Balacne")
+        logger.info("Get IOY Wallet Balance")
         val signData = jwsService.sign(data, privateKey, publicKey)
         return walletClient.ioyBalance(token, signData) ?: throw TokenException("GET_WALLET_IOY_BALANCE_ERROR")
     }
 
     fun settlementBalance(token: String, data: SettlementBalanceRequest, privateKey: String, publicKey: String): Mono<BalanceResponse> {
-        logger.info("Get Settlement Wallet Balacne")
+        logger.info("Get Settlement Wallet Balance")
         val signData = jwsService.sign(data, privateKey, publicKey)
         return walletClient.settlementBalance(token, signData) ?: throw TokenException("GET_WALLET_SETTLEMENT_BALANCE_ERROR")
     }

@@ -14,7 +14,6 @@ import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
 import br.com.blupay.smesp.core.providers.token.wallet.WalletProvider
 import br.com.blupay.smesp.core.providers.token.wallet.WalletResponse
 import br.com.blupay.smesp.core.providers.token.wallet.WalletTokenResponse
-import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.wallets.Wallet
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -96,26 +95,27 @@ class TokenWalletService(
     }
 
     fun getSettlementBalance(
-        token: String,
-        signer: WalletData,
+        bearerToken: String,
+        signer: Wallet,
         id: UUID,
         settlementType: SettlementBalanceRequest.SettlementType
     ): Mono<BalanceResponse> {
-        return nodeProvider.getPublicKey(token).map { node ->
-            SettlementBalanceRequest(
-                TokenHeader(
-                    action = "br.com.blupay.token.workflows.settlement.Balance",
-                    wallet = signer.id
-                ),
-                LocalWalletRequest(id),
-                TokenRequest(
-                    type = tokenType,
-                    issuer = node.publicKey
-                ),
+        return nodeProvider.getPublicKey(bearerToken)
+            .map { node ->
+                SettlementBalanceRequest(
+                    TokenHeader(
+                        action = "br.com.blupay.token.workflows.settlement.Balance",
+                        wallet = signer.token
+                    ),
+                    LocalWalletRequest(id),
+                    TokenRequest(
+                        type = tokenType,
+                        issuer = node.publicKey
+                    ),
                 settlementType
             )
         }.flatMap { data ->
-            walletProvider.settlementBalance(token, data, signer.privateKey, signer.publicKey)
+                walletProvider.settlementBalance(bearerToken, data, signer.privateKey, signer.publicKey)
         }
     }
 }
