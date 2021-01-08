@@ -1,0 +1,27 @@
+@startuml
+group Step 1: import file
+    Blupay -> Smesp: Import citizen file
+    loop each line
+        Smesp -> Smesp: Save citizen
+    end
+    Smesp --> Blupay: Import success
+end
+group Step 2: create wallets
+    Blupay -> Smesp: Create citizens wallets
+    loop each citizen
+        Smesp -> Corda_Token: Create wallet
+        Corda_Token --> Smesp: Wallet created
+        Smesp -> Smesp: Save wallet
+    end
+    Smesp --> Blupay: Wallets created
+end
+group Step 3: transfer benefit
+    Blupay -> Smesp: Transfer benefit to wallet
+    loop each citizen
+        Smesp -> Corda_Token: Transfer from wallet cashin to citizen wallet
+        Corda_Token --> Smesp: Token transfered
+        Smesp -> Smesp: Save wallet status
+    end
+    Smesp --> Blupay: Benefit transfered
+end
+@enduml

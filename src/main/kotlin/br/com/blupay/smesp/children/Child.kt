@@ -12,12 +12,12 @@ import javax.persistence.Table
 @Table(name = "children")
 data class Child(
     @Id
-    val id: UUID,
+    val id: UUID = UUID.randomUUID(),
     val name: String,
     @ManyToOne
     val category: Category,
     @ManyToOne
-    val citizen: Citizen?
+    var citizen: Citizen?
 ) {
     constructor(name: String, category: Category) : this(
         UUID.randomUUID(),

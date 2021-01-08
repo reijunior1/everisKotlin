@@ -120,8 +120,7 @@ class CitizenService(
                 person.name,
                 person.register,
                 person.email,
-                person.phone,
-                listOf()
+                person.phone
             )
         )
 

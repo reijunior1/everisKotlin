@@ -8,6 +8,7 @@ import javax.persistence.CascadeType.ALL
 import javax.persistence.Entity
 import javax.persistence.EnumType.STRING
 import javax.persistence.Enumerated
+import javax.persistence.FetchType.LAZY
 import javax.persistence.Id
 import javax.persistence.OneToMany
 import javax.persistence.Table
@@ -16,13 +17,20 @@ import javax.persistence.Table
 @Table(name = "citizens")
 data class Citizen(
         @Id
-        val id: UUID?,
+        val id: UUID? = UUID.randomUUID(),
         val name: String,
         val cpf: String,
         val email: String,
         val phone: String,
-        @OneToMany(cascade = [ALL], orphanRemoval = true, mappedBy = "citizen")
-        val children: List<Child>,
         @Enumerated(STRING)
         val flow: OnboardFlow = CREDENTIALS
-)
+) {
+    @OneToMany(cascade = [ALL], orphanRemoval = true, mappedBy = "citizen")
+    var children: List<Child> = listOf()
+        set(value) {
+                field = value.map {
+                        it.citizen = this
+                        it
+                }
+        }
+}

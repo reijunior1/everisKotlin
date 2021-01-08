@@ -32,6 +32,8 @@ db:
   name: smesp
   user: smesp
   pass: smesp
+#  addr: blupay-tk.com.br:10432
+#  pass: Ajt7L@8Z$jg8QMBju&PzbKTQ5@wYH5-w
 
 # Log Level Configuration
 logging:
@@ -59,6 +61,11 @@ spring:
   flyway:
     enable: true
     out-of-order: true
+
+  servlet:
+    multipart:
+      max-file-size: 60MB
+      max-request-size: 60MB
 
 # Doc Open Api Configuration
 springdoc:

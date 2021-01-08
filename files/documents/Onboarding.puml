@@ -1,0 +1,14 @@
+@startuml
+Citizen -> Smesp: Send CPF
+Smesp -> Identity_Validator: Execute OTP
+Identity_Validator --> Citizen: Send OPT Code
+Citizen -> Smesp: Send OPT Code
+Smesp -> Identity_Validator: Validate OTP
+Identity_Validator --> Smesp: OPT Validated
+Smesp -> Keyclock: Create User
+Keyclock --> Smesp: User created
+Smesp -> Identity: Create Person
+Identity --> Smesp: Person created
+Smesp -> Smesp: Update citizen with \nuser and person information
+Smesp --> Citizen: Onboarding success
+@enduml

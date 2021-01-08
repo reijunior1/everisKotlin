@@ -11,19 +11,22 @@ import br.com.blupay.smesp.core.resources.citizens.models.Literacy
 import br.com.blupay.smesp.core.resources.citizens.models.MiniGrup
 import br.com.blupay.smesp.core.resources.citizens.models.Nursery
 import com.opencsv.bean.CsvToBeanBuilder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.Reader
+import java.time.Instant
 import java.util.UUID
-import kotlin.streams.toList
 
 @Service
 class CitizenImportService(
-    private val citizenRepository: CitizenRepository,
-    private val categoryRepository: CategoryRepository
+        private val citizenRepository: CitizenRepository,
+        private val categoryRepository: CategoryRepository
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(CitizenImportService::class.java)
 
     private val CATEGORY_NURSERY = "Educação Infantil (CEI) - Berçário I e II"
     private val CATEGORY_MINI_GROUP = "Educação Infantil (CEI) - Mini Grupo I e II"
@@ -43,37 +46,56 @@ class CitizenImportService(
     private fun resolve(citizenImports: MutableList<CitizenImport>) {
         val categories = categoryRepository.findAll()
 
-        val citizens = citizenImports.stream().map { citizenImport ->
+        var count = 1
+        val citizens = citizenImports.asSequence().map { citizenImport ->
+
+            logger.info("Create citizen ${count++}")
+
             val children = mutableListOf<Child>()
             children.addAll(MiniGrup().resolve(citizenImport, categories.first { it.category == CATEGORY_MINI_GROUP }))
             children.addAll(Nursery().resolve(citizenImport, categories.first { it.category == CATEGORY_NURSERY }))
             children.addAll(Infant().resolve(citizenImport, categories.first { it.category == CATEGORY_INFANT }))
             children.addAll(Literacy().resolve(citizenImport, categories.first { it.category == CATEGORY_LITERACY }))
             children.addAll(
-                Interdisciplinary().resolve(
-                    citizenImport,
-                    categories.first { it.category == CATEGORY_INTERDISCIPLINARY })
+                    Interdisciplinary().resolve(
+                            citizenImport,
+                            categories.first { it.category == CATEGORY_INTERDISCIPLINARY })
             )
             children.addAll(Autoral().resolve(citizenImport, categories.first { it.category == CATEGORY_AUTORAL }))
             children.addAll(Eja().resolve(citizenImport, categories.first { it.category == CATEGORY_EJA }))
 
-            Citizen(
-                id = UUID.randomUUID(),
-                name = "Cidadao",
-                cpf = citizenImport.noNullCpf(),
-                email = citizenImport.noNullEmail(),
-                phone = citizenImport.noNullPhone(),
-                children = children
+            val citizen = Citizen(
+                    id = UUID.randomUUID(),
+                    name = "Cidadao",
+                    cpf = citizenImport.noNullCpf(),
+                    email = citizenImport.noNullEmail(),
+                    phone = citizenImport.noNullPhone()
             )
+            citizen.children = children
+            citizen
         }.toList()
 
-        citizenRepository.saveAll(citizens)
+        val uniqueCitizens = citizens.distinctBy { it.cpf }
+
+        logger.info("Unique citizens: ${uniqueCitizens.size}")
+
+        count = 1
+        val chankedList = uniqueCitizens.chunked(10000)
+        chankedList.forEach {
+            logger.info("Save ${count++} of ${chankedList.size}")
+            logger.info("Start at ${Instant.now()}")
+            try {
+                citizenRepository.saveAll(it)
+            } catch (ex: Exception) {
+                logger.error(ex.message)
+            }
+        }
     }
 
     private fun csvToBean(reader: Reader) = CsvToBeanBuilder<CitizenImport>(reader)
-        .withType(CitizenImport::class.java)
-        .withIgnoreLeadingWhiteSpace(true)
-        .withSkipLines(1)
-        .build()
+            .withType(CitizenImport::class.java)
+            .withIgnoreLeadingWhiteSpace(true)
+            .withSkipLines(1)
+            .build()
 
 }
