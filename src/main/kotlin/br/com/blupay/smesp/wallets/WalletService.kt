@@ -2,9 +2,11 @@ package br.com.blupay.smesp.wallets
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
 import br.com.blupay.smesp.core.providers.token.TokenException
+import br.com.blupay.smesp.core.providers.token.token.RedeemTokensRequest.Settlement
 import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
 import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest.SettlementType.RECEIVER
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
+import br.com.blupay.smesp.core.resources.wallets.api.WalletRead.ApprovedBalanceResponse
 import br.com.blupay.smesp.core.resources.wallets.exceptions.BalanceNotFoundException
 import br.com.blupay.smesp.core.resources.wallets.exceptions.WalletNotFoundException
 import br.com.blupay.smesp.core.services.OwnerService
@@ -30,12 +32,12 @@ class WalletService(
 
     fun findByRole(role: Wallet.Role): List<Wallet> {
         return walletRepository.findByRole(role)
-                ?: throw WalletNotFoundException(role.name)
+            ?: throw WalletNotFoundException(role.name)
     }
 
     fun findByOwnerAndRole(owner: UUID, role: Wallet.Role): List<Wallet> {
         return walletRepository.findByOwnerAndRole(owner, role)
-                ?: throw WalletNotFoundException("${owner}/${role.name}")
+            ?: throw WalletNotFoundException("${owner}/${role.name}")
     }
 
     fun findByToken(token: UUID): Wallet {
@@ -54,21 +56,45 @@ class WalletService(
         ownerService.userOwns(auth, wallet.owner)
 
         val response = tokenWalletService.getBalance(auth.token, wallet, wallet.token).block()
-                ?: throw BalanceNotFoundException(wallet.token.toString())
+            ?: throw BalanceNotFoundException(wallet.token.toString())
         return BalanceResponse(response.balance)
     }
 
-    fun save(owner: UUID, tokenId: UUID, type: UserTypes, role: Wallet.Role, publicKey: String, privateKey: String): Wallet {
+    fun getApprovedBalanceAndReleaseDate(walletId: UUID, auth: AuthCredentials): List<ApprovedBalanceResponse> {
+        val wallet = findById(walletId)
+        ownerService.userOwns(auth, wallet.owner)
+
+        return tokenWalletService.getSettlementList(auth.token, wallet, wallet.token)
+            .map { setlements ->
+                setlements.map { settlement: Settlement ->
+                    ApprovedBalanceResponse(
+                        settlement.date,
+                        settlement.dueDate,
+                        settlement.amount
+                    )
+                }
+            }.block()
+            ?: throw BalanceNotFoundException(wallet.token.toString())
+    }
+
+    fun save(
+        owner: UUID,
+        tokenId: UUID,
+        type: UserTypes,
+        role: Wallet.Role,
+        publicKey: String,
+        privateKey: String
+    ): Wallet {
         return walletRepository.save(
-                Wallet(
-                    UUID.randomUUID(),
-                    owner,
-                    tokenId,
-                    type,
-                    role, publicKey,
-                    privateKey,
-                    ""
-                )
+            Wallet(
+                UUID.randomUUID(),
+                owner,
+                tokenId,
+                type,
+                role, publicKey,
+                privateKey,
+                ""
+            )
         )
     }
 

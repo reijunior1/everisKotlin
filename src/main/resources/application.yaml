@@ -103,6 +103,7 @@ provider:
         safe-move: /token/safe-move
         pay-ioy: /token/pay-ioy
         settlement-order: /token/settlement-order
+        settlement-list: /token/settlement
   identity:
     host: http://localhost:9110/api/v1
     endpoint:

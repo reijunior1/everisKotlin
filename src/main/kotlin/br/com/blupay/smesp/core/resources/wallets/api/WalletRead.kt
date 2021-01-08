@@ -25,5 +25,18 @@ object WalletRead {
             id: UUID,
             auth: JwtAuthenticationToken,
         ): ResponseEntity<BalanceResponse>
+
+        @GetMapping("{id}/approved-balance")
+        fun approvedBalances(
+            @PathVariable("id") id: UUID,
+            auth: JwtAuthenticationToken
+        ): ResponseEntity<List<ApprovedBalanceResponse>>
     }
+
+    data class ApprovedBalanceResponse(
+        val date: Long,
+        val dueDate: Long,
+        val amount: Long
+    )
+
 }

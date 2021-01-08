@@ -1,6 +1,8 @@
 package br.com.blupay.smesp.core.providers.token.token
 
 import br.com.blupay.smesp.core.providers.token.TokenException
+import br.com.blupay.smesp.core.providers.token.token.RedeemTokensRequest.Settlement
+import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest
 import br.com.blupay.smesp.core.services.JwsService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -48,5 +50,11 @@ class TokenProvider(
         logger.info("Token Settlement Order")
         val signData = jwsService.sign(data, privateKey, publicKey)
         return tokenClient.settlementOrderToken(token, signData) ?: throw TokenException("TOKEN_SETTLEMENT_ORDER_ERROR")
+    }
+
+    fun settlementList(token: String, data: SettlementBalanceRequest, privateKey: String, publicKey: String): Mono<List<Settlement>> {
+        logger.info("Token Settlement List")
+        val signData = jwsService.sign(data, privateKey, publicKey)
+        return tokenClient.settlementList(token, signData) ?: throw TokenException("TOKEN_SETTLEMENT_LIST_ERROR")
     }
 }

@@ -1,6 +1,7 @@
 package br.com.blupay.smesp.core.providers.token.token
 
 import br.com.blupay.blubasemodules.core.clients.ReactiveClient
+import br.com.blupay.smesp.core.providers.token.token.RedeemTokensRequest.Settlement
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -14,7 +15,8 @@ class TokenClient(
         @Value("\${provider.token.endpoint.token.redeem}") private val redeemToken: String,
         @Value("\${provider.token.endpoint.token.safe-move}") private val safeMoveToken: String,
         @Value("\${provider.token.endpoint.token.pay-ioy}") private val payIoyToken: String,
-        @Value("\${provider.token.endpoint.token.settlement-order}") private val settlementOrderToken: String
+        @Value("\${provider.token.endpoint.token.settlement-order}") private val settlementOrderToken: String,
+        @Value("\${provider.token.endpoint.token.settlement-list}") private val settlementListToken: String
 ) : ReactiveClient(baseUrl) {
 
     fun issueToken(bearerToken: String, data: String): Mono<IssueTokensRequest>? {
@@ -39,6 +41,10 @@ class TokenClient(
 
     fun settlementOrderToken(bearerToken: String, data: String): Mono<SettlementMoveTokensRequest>? {
         return doPutRequest(settlementOrderToken, bearerToken, data)
+    }
+
+    fun settlementList(bearerToken: String, data: String): Mono<List<Settlement>>? {
+        return doGetRequest(settlementListToken,  bearerToken, data)
     }
 
     private inline fun <reified T> doGetRequest(url: String, bearerToken: String, data: String): Mono<T>? {
