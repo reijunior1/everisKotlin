@@ -11,18 +11,18 @@ class TokenNodeService(
 ) {
     var nodePk: String? = null
 
-    fun getPublicKey(token: String): Mono<String> {
+    fun getPublicKey(): Mono<String> {
         return if (nodePk != null) {
             Mono.just(nodePk!!)
         } else {
-            nodeProvider.getPublicKey(token).map {
+            nodeProvider.getPublicKey().map {
                 nodePk = it.publicKey
                 it.publicKey
             }
         }
     }
 
-    fun getParty(token: String, pk: String): Mono<NodeResponse> {
-        return nodeProvider.getParty(token, pk)
+    fun getParty(pk: String): Mono<NodeResponse> {
+        return nodeProvider.getParty(pk)
     }
 }

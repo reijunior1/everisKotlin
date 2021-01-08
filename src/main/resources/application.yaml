@@ -83,6 +83,14 @@ service:
 # Providers
 provider:
   token:
+    auth:
+      url: https://hml.auth.blupay-apps.com.br/auth
+      uri: /realms/smesp/protocol/openid-connect/token
+      grant_type: password
+      client_id: smesp-app
+      client_secret: e1037bef-2ce6-4fc7-9149-0556aa7d951b
+      username: user1
+      password: user1
     host: https://blupay-tk.com.br/api/token
 #    host: http://localhost:6901/api/token
     endpoint:

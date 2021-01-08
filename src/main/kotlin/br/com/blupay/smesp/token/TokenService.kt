@@ -26,7 +26,7 @@ class TokenService(
         private val tokenProvider: TokenProvider
 ) {
     fun issueToken(token: String, signer: Wallet, id: UUID, amount: Long, maxSize: Long): Mono<IssueTokensRequest> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             IssueTokensRequest(
                     TokenHeader(
                             action = "br.com.blupay.token.workflows.token.IssueTokens",
@@ -43,7 +43,7 @@ class TokenService(
                     )
             )
         }.flatMap { data ->
-            tokenProvider.issueToken(token, data, signer.privateKey, signer.publicKey)
+            tokenProvider.issueToken(data, signer.privateKey, signer.publicKey)
         }
     }
 
@@ -53,7 +53,7 @@ class TokenService(
             debtorId: UUID,
             creditors: List<Creditor>
     ): Mono<MoveTokensRequest> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             MoveTokensRequest(
                     TokenHeader(
                             action = "br.com.blupay.token.workflows.token.MoveTokens",
@@ -75,7 +75,7 @@ class TokenService(
                     )
             )
         }.flatMap { data ->
-            tokenProvider.moveToken(token, data, signer.privateKey, signer.publicKey)
+            tokenProvider.moveToken(data, signer.privateKey, signer.publicKey)
         }
     }
 
@@ -87,7 +87,7 @@ class TokenService(
                 ),
                 settlementId
         )
-        return tokenProvider.redeemToken(token, data, signer.privateKey, signer.publicKey)
+        return tokenProvider.redeemToken(data, signer.privateKey, signer.publicKey)
     }
 
     fun safeMoveToken(
@@ -98,7 +98,7 @@ class TokenService(
             ioyWalletId: UUID,
             creditors: List<Creditor>
     ): Mono<SafeMoveTokensRequest> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             SafeMoveTokensRequest(
                     TokenHeader(
                             action = "br.com.blupay.token.workflows.token.SafeMoveTokens",
@@ -125,7 +125,7 @@ class TokenService(
                     )
             )
         }.flatMap { data ->
-            tokenProvider.safeMoveToken(token, data, signer.privateKey, signer.publicKey)
+            tokenProvider.safeMoveToken(data, signer.privateKey, signer.publicKey)
         }
     }
 
@@ -137,7 +137,7 @@ class TokenService(
                 ),
                 ioyId
         )
-        return tokenProvider.payIoyToken(token, data, signer.privateKey, signer.publicKey)
+        return tokenProvider.payIoyToken(data, signer.privateKey, signer.publicKey)
     }
 
     fun settlementOrderToken(
@@ -148,7 +148,7 @@ class TokenService(
             cashoutWalletId: UUID,
             creditors: List<Creditor>
     ): Mono<SettlementMoveTokensRequest> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             SettlementMoveTokensRequest(
                     TokenHeader(
                             action = "br.com.blupay.token.workflows.token.SettlementOrder",
@@ -166,7 +166,7 @@ class TokenService(
                     )
             )
         }.flatMap { data ->
-            tokenProvider.settlementOrderToken(token, data, signer.privateKey, signer.publicKey)
+            tokenProvider.settlementOrderToken(data, signer.privateKey, signer.publicKey)
         }
     }
 }

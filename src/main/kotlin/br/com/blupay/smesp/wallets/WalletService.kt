@@ -1,24 +1,33 @@
 package br.com.blupay.smesp.wallets
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
+import br.com.blupay.smesp.citizens.CitizenService
 import br.com.blupay.smesp.core.providers.token.TokenException
 import br.com.blupay.smesp.core.providers.token.token.RedeemTokensRequest.Settlement
 import br.com.blupay.smesp.core.providers.token.wallet.BalanceResponse
+import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.providers.token.wallet.SettlementBalanceRequest.SettlementType.RECEIVER
 import br.com.blupay.smesp.core.resources.shared.enums.UserTypes
 import br.com.blupay.smesp.core.resources.wallets.api.WalletRead.ApprovedBalanceResponse
 import br.com.blupay.smesp.core.resources.wallets.exceptions.BalanceNotFoundException
 import br.com.blupay.smesp.core.resources.wallets.exceptions.WalletNotFoundException
+import br.com.blupay.smesp.core.resources.wallets.models.PopulateResponse
+import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.core.services.OwnerService
 import br.com.blupay.smesp.token.TokenWalletService
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import java.util.UUID
 
 @Service
 class WalletService(
     private val walletRepository: WalletRepository,
     private val tokenWalletService: TokenWalletService,
-    private val ownerService: OwnerService
+    private val citizenService: CitizenService,
+    private val ownerService: OwnerService,
+    private val jwsService: JwsService,
 ) {
     fun findByOwnerAndToken(owner: UUID, token: UUID): Wallet? {
         return walletRepository.findByOwnerAndToken(owner, token)
@@ -103,5 +112,40 @@ class WalletService(
         ownerService.userOwns(auth, wallet.owner)
         return tokenWalletService.getSettlementBalance(auth.token, wallet, wallet.token, RECEIVER).block()
             ?: throw TokenException()
+    }
+
+    fun createWallets(token: String): Mono<PopulateResponse> {
+        val pagination = PageRequest.of(0, 5)
+        return citizenService
+            .findCitizensWithoutWallet(pagination)
+            .toFlux()
+            .flatMap { createWallet(token, it.id!!) }
+            .map { walletRepository.save(it) }
+            .count()
+            .map { PopulateResponse(it) }
+    }
+
+    private fun createWallet(token: String, ownerId: UUID): Mono<Wallet> {
+        val keyPair = jwsService.getKeyPairEncoded()
+        val issueWallet = IssueWallet(
+            ownerId.toString().replace("-", ""),
+            keyPair.publicKey,
+            Wallet.Role.PAYER
+        )
+        return tokenWalletService
+            .issueWallet(token, issueWallet)
+            .map {
+                val pin = (1000..9999).random()
+                Wallet(
+                    UUID.randomUUID(),
+                    ownerId,
+                    it.id,
+                    UserTypes.CITIZEN,
+                    Wallet.Role.PAYER,
+                    keyPair.publicKey,
+                    keyPair.privateKey,
+                    pin.toString()
+                )
+            }
     }
 }

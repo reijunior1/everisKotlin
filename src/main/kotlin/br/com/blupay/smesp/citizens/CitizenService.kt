@@ -22,11 +22,14 @@ import br.com.blupay.smesp.wallets.WalletRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.security.auth.login.CredentialException
+
 
 @Service
 class CitizenService(
@@ -54,7 +57,7 @@ class CitizenService(
                 name = citizen.name,
                 register = citizen.cpf,
                 email = citizen.email,
-                phone = citizen.phone,
+                phone = citizen.phone
             )
         ).zipWhen {
             logger.info("Creating user password")
@@ -130,5 +133,9 @@ class CitizenService(
                 val status = validations.reduce { acc, item -> if (PROCESSED != acc.status) acc else item }.status
                 CitizenStatusResponse(status, validations)
             }
+    }
+
+    fun findCitizensWithoutWallet(pagination: PageRequest): Page<Citizen> {
+        return citizenRepository.findCitizensWithoutWallet(pagination)
     }
 }

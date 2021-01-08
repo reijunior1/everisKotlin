@@ -8,22 +8,22 @@ import reactor.core.publisher.Mono
 
 @Component
 class NodeClient(
-        @Value("\${provider.token.host}") private val baseUrl: String,
-        @Value("\${provider.token.endpoint.node.public-key}") private val nodePublicKey: String,
-        @Value("\${provider.token.endpoint.node.party}") private val nodeParty: String
+    @Value("\${provider.token.host}") private val baseUrl: String,
+    @Value("\${provider.token.endpoint.node.public-key}") private val nodePublicKey: String,
+    @Value("\${provider.token.endpoint.node.party}") private val nodeParty: String
 ) : ReactiveClient(baseUrl) {
-    fun publicKey(bearerToken: String): Mono<NodeResponse>? {
+    fun publicKey(token: String): Mono<NodeResponse>? {
         return get(nodePublicKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .authBearer(bearerToken)
-                .send(NodeResponse::class.java)
+            .contentType(MediaType.APPLICATION_JSON)
+            .authBearer(token)
+            .send(NodeResponse::class.java)
     }
 
-    fun party(bearerToken: String, pk: String): Mono<NodeResponse>? {
+    fun party(token: String, pk: String): Mono<NodeResponse>? {
         return get(nodeParty)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("public-key", pk)
-                .authBearer(bearerToken)
-                .send(NodeResponse::class.java)
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("public-key", pk)
+            .authBearer(token)
+            .send(NodeResponse::class.java)
     }
 }

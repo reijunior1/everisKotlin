@@ -23,6 +23,7 @@ class CitizenController(
     private val citizenImportService: CitizenImportService
 ) : CitizenCreate.Controller, CitizenRead.Controller, CitizenImport.Controller, CitizenStatus.Controller {
 
+
     @RolesAllowed("ROLE_CITIZEN")
     override fun findOne(citizenId: UUID, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
         val data = citizenService.findOne(citizenId, auth.authCredentials)
@@ -42,9 +43,10 @@ class CitizenController(
         auth: JwtAuthenticationToken
     ): Mono<ResponseEntity<CitizenResponse>> {
         return citizenService.createCredentials(citizenId, request, auth.authCredentials)
-            .map { response -> ResponseEntity.status(HttpStatus.CREATED).body(response)}
+            .map { response -> ResponseEntity.status(HttpStatus.CREATED).body(response) }
     }
 
+    @RolesAllowed("ROLE_ADMIN")
     override fun importCsv(file: MultipartFile) {
         citizenImportService.parseToModel(file)
     }

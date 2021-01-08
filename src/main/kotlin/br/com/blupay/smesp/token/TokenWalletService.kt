@@ -25,13 +25,13 @@ import java.util.UUID
 
 @Service
 class TokenWalletService(
-        @Value("\${service.token.type}") private val tokenType: String,
-        private val walletProvider: WalletProvider,
-        private val nodeProvider: NodeProvider,
-        private val tokenProvider: TokenProvider
+    @Value("\${service.token.type}") private val tokenType: String,
+    private val walletProvider: WalletProvider,
+    private val nodeProvider: NodeProvider,
+    private val tokenProvider: TokenProvider
 ) {
     fun issueWallet(token: String, wallet: IssueWallet): Mono<WalletTokenResponse> =
-        walletProvider.issueWallet(token, wallet)
+        walletProvider.issueWallet(wallet)
 
     fun addWalletRole(token: String, signer: WalletData, id: UUID, role: Wallet.Role): Mono<AddAndRemoveRoleRequest> {
         val addData = AddAndRemoveRoleRequest(
@@ -42,7 +42,7 @@ class TokenWalletService(
             LocalWalletRequest(id),
             role
         )
-        return walletProvider.addRole(token, addData, signer.privateKey, signer.publicKey)
+        return walletProvider.addRole(addData, signer.privateKey, signer.publicKey)
     }
 
     fun getWallet(token: String, signer: WalletData, id: UUID): Mono<WalletResponse> {
@@ -53,11 +53,11 @@ class TokenWalletService(
             ),
             LocalWalletRequest(id)
         )
-        return walletProvider.getWallet(token, addData, signer.privateKey, signer.publicKey)
+        return walletProvider.getWallet(addData, signer.privateKey, signer.publicKey)
     }
 
     fun getBalance(token: String, signer: Wallet, id: UUID): Mono<BalanceResponse> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             BalanceRequest(
                 TokenHeader(
                     action = "br.com.blupay.token.workflows.token.Balance",
@@ -70,7 +70,7 @@ class TokenWalletService(
                 )
             )
         }.flatMap { data ->
-            walletProvider.balance(token, data, signer.privateKey, signer.publicKey)
+            walletProvider.balance(data, signer.privateKey, signer.publicKey)
         }
     }
 
@@ -80,7 +80,7 @@ class TokenWalletService(
         id: UUID,
         ioyType: IoyBalanceRequest.IoyType
     ): Mono<BalanceResponse> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             IoyBalanceRequest(
                 TokenHeader(
                     action = "br.com.blupay.token.workflows.ioy.Balance",
@@ -94,7 +94,7 @@ class TokenWalletService(
                 ioyType
             )
         }.flatMap { data ->
-            walletProvider.ioyBalance(token, data, signer.privateKey, signer.publicKey)
+            walletProvider.ioyBalance(data, signer.privateKey, signer.publicKey)
         }
     }
 
@@ -104,7 +104,7 @@ class TokenWalletService(
         id: UUID,
         settlementType: SettlementBalanceRequest.SettlementType
     ): Mono<BalanceResponse> {
-        return nodeProvider.getPublicKey(bearerToken)
+        return nodeProvider.getPublicKey()
             .map { node ->
                 SettlementBalanceRequest(
                     TokenHeader(
@@ -116,11 +116,11 @@ class TokenWalletService(
                         type = tokenType,
                         issuer = node.publicKey
                     ),
-                settlementType
-            )
-        }.flatMap { data ->
-                walletProvider.settlementBalance(bearerToken, data, signer.privateKey, signer.publicKey)
-        }
+                    settlementType
+                )
+            }.flatMap { data ->
+                walletProvider.settlementBalance(data, signer.privateKey, signer.publicKey)
+            }
     }
 
     fun getSettlementList(
@@ -128,7 +128,7 @@ class TokenWalletService(
         signer: Wallet,
         id: UUID
     ): Mono<List<Settlement>> {
-        return nodeProvider.getPublicKey(token).map { node ->
+        return nodeProvider.getPublicKey().map { node ->
             SettlementBalanceRequest(
                 TokenHeader(
                     action = "br.com.blupay.token.workflows.settlement.GetSettlementList",
@@ -142,7 +142,7 @@ class TokenWalletService(
                 RECEIVER
             )
         }.flatMap { data ->
-            tokenProvider.settlementList(token, data, signer.privateKey, signer.publicKey)
+            tokenProvider.settlementList(data, signer.privateKey, signer.publicKey)
         }
     }
 }

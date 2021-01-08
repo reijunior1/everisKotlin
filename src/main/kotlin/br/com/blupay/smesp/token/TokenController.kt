@@ -40,21 +40,6 @@ class TokenController(
     )
     val signer = WalletData(adminWalletId, adminKeyPair.privateKey, adminKeyPair.publicKey)
 
-    @GetMapping("/node/public-key")
-    fun getPublicKey(auth: JwtAuthenticationToken): Mono<String> {
-        val token = auth.token.tokenValue
-        return tokenNodeService.getPublicKey(token)
-    }
-
-    @GetMapping("/node/party")
-    fun getParty(
-            auth: JwtAuthenticationToken,
-            @RequestParam("pk") pk: String
-    ): Mono<NodeResponse> {
-        val token = auth.token.tokenValue
-        return tokenNodeService.getParty(token, pk)
-    }
-
     @GetMapping("/wallet/get")
     fun getWallet(
             auth: JwtAuthenticationToken,
