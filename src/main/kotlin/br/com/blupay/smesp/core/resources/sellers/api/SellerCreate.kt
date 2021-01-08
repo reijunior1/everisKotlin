@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.validation.Valid
 
@@ -17,6 +18,6 @@ object SellerCreate {
         @PostMapping("{sellerId}/credentials")
         fun createCredentials(@PathVariable(value = "sellerId") sellerId: UUID,
                               @Valid @RequestBody request: PasswordRequest,
-                              auth: JwtAuthenticationToken): ResponseEntity<SellerResponse>
+                              auth: JwtAuthenticationToken): Mono<ResponseEntity<SellerResponse>>
     }
 }

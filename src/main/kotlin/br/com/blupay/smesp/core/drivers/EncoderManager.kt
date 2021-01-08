@@ -15,9 +15,9 @@ data class EncoderManager(
         private val cipher: Cipher = Cipher.getInstance(algorithm)
 ) {
 
-    fun encrypt(input: String): String {
-        val inputBytes = input.toByteArray()
-        return encrypt(inputBytes)
+    fun encrypt(input: String? = null): String? {
+        val inputBytes = input?.toByteArray()
+        return if (input != null) inputBytes?.let { encrypt(it) } else null
     }
 
     fun encrypt(inputBytes: ByteArray): String {

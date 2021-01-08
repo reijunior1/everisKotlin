@@ -19,8 +19,8 @@ data class Seller(
     val id: UUID?,
     val name: String,
     val cnpj: String,
-    val email: String,
-    val phone: String,
+    val email: String? = null,
+    val phone: String? = null,
     @OneToMany(cascade = [ALL], mappedBy = "seller")
     val banks: List<BankAccount>?,
     @Enumerated(STRING)

@@ -19,12 +19,9 @@ import javax.annotation.security.RolesAllowed
 
 @RestController
 class CitizenController(
-        val citizenService: CitizenService,
-        private val citizenImportService: CitizenImportService
-) : CitizenCreate.Controller,
-    CitizenRead.Controller,
-    CitizenImport.Controller,
-    CitizenStatus.Controller {
+    private val citizenService: CitizenService,
+    private val citizenImportService: CitizenImportService
+) : CitizenCreate.Controller, CitizenRead.Controller, CitizenImport.Controller, CitizenStatus.Controller {
 
     @RolesAllowed("ROLE_CITIZEN")
     override fun findOne(citizenId: UUID, auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
@@ -39,11 +36,13 @@ class CitizenController(
     }
 
     @RolesAllowed("ROLE_GUEST", "ROLE_CITIZEN")
-    override fun createCredentials(citizenId: UUID,
-                                   request: PasswordRequest,
-                                   auth: JwtAuthenticationToken): ResponseEntity<CitizenResponse> {
-        val citizen = citizenService.createCredentials(citizenId, request, auth.authCredentials)
-        return ResponseEntity.status(HttpStatus.CREATED).body(citizen)
+    override fun createCredentials(
+        citizenId: UUID,
+        request: PasswordRequest,
+        auth: JwtAuthenticationToken
+    ): Mono<ResponseEntity<CitizenResponse>> {
+        return citizenService.createCredentials(citizenId, request, auth.authCredentials)
+            .map { response -> ResponseEntity.status(HttpStatus.CREATED).body(response)}
     }
 
     override fun importCsv(file: MultipartFile) {
@@ -51,7 +50,10 @@ class CitizenController(
     }
 
     @RolesAllowed("ROLE_CITIZEN")
-    override fun checkStatus(citizenId: UUID, auth: JwtAuthenticationToken): Mono<ResponseEntity<CitizenStatusResponse>> {
+    override fun checkStatus(
+        citizenId: UUID,
+        auth: JwtAuthenticationToken
+    ): Mono<ResponseEntity<CitizenStatusResponse>> {
         return citizenService.checkStatus(citizenId, auth.authCredentials)
             .map { response -> ResponseEntity.ok(response) }
     }

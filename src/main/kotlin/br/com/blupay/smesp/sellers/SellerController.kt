@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.annotation.security.RolesAllowed
 
@@ -50,8 +51,8 @@ class SellerController(
 
     @RolesAllowed("ROLE_GUEST", "ROLE_SELLER")
     override fun createCredentials(sellerId: UUID, request: PasswordRequest,
-                                   auth: JwtAuthenticationToken): ResponseEntity<SellerResponse> {
-        val seller = sellerService.createCredentials(sellerId, request, auth.token)
-        return ResponseEntity.status(HttpStatus.CREATED).body(seller)
+                                   auth: JwtAuthenticationToken): Mono<ResponseEntity<SellerResponse>> {
+        return sellerService.createCredentials(sellerId, request, auth.authCredentials)
+            .map { response -> ResponseEntity.status(HttpStatus.CREATED).body(response) }
     }
 }

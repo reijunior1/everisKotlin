@@ -10,8 +10,8 @@ data class SellerResponse(
         val id: UUID,
         val name: String,
         val cnpj: String,
-        val email: String,
-        val phone: String,
+        val email: String? = null,
+        val phone: String? = null,
         val flow: OnboardFlow = CREDENTIALS,
         val walletId: UUID? = null
 )

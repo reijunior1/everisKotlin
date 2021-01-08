@@ -20,8 +20,8 @@ data class Citizen(
         val id: UUID? = UUID.randomUUID(),
         val name: String,
         val cpf: String,
-        val email: String,
-        val phone: String,
+        val email: String? = null,
+        val phone: String? = null,
         @Enumerated(STRING)
         val flow: OnboardFlow = CREDENTIALS
 ) {

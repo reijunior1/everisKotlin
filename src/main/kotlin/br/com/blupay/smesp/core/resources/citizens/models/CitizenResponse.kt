@@ -10,8 +10,8 @@ data class CitizenResponse(
         val id: UUID,
         val name: String,
         val cpf: String,
-        val email: String,
-        val phone: String,
+        val email: String? = null,
+        val phone: String? = null,
         val flow: OnboardFlow = CREDENTIALS,
         val walletId: UUID? = null
 )

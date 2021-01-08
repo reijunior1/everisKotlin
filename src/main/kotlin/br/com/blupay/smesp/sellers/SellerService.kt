@@ -1,11 +1,10 @@
 package br.com.blupay.smesp.sellers
 
 import br.com.blupay.blubasemodules.core.models.AuthCredentials
+import br.com.blupay.blubasemodules.identity.people.PersonCreate
 import br.com.blupay.blubasemodules.identity.people.PersonCredentials
-import br.com.blupay.blubasemodules.identity.people.PersonSearch
 import br.com.blupay.smesp.core.drivers.EncoderManager
 import br.com.blupay.smesp.core.providers.identity.IdentityProvider
-import br.com.blupay.smesp.core.providers.token.wallet.IssueWallet
 import br.com.blupay.smesp.core.resources.sellers.api.SellerBankAccount
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerException
 import br.com.blupay.smesp.core.resources.sellers.exceptions.SellerNotFoundException
@@ -14,18 +13,17 @@ import br.com.blupay.smesp.core.resources.sellers.models.SellerResponse
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow
 import br.com.blupay.smesp.core.resources.shared.enums.OnboardFlow.VALIDATION
 import br.com.blupay.smesp.core.resources.shared.enums.UserGroups
-import br.com.blupay.smesp.core.resources.shared.enums.UserTypes.SELLER
 import br.com.blupay.smesp.core.resources.shared.models.PasswordRequest
-import br.com.blupay.smesp.core.services.JwsService
 import br.com.blupay.smesp.core.services.OwnerService
 import br.com.blupay.smesp.sellers.banks.BankAccount
 import br.com.blupay.smesp.sellers.banks.BankAccountRepository
-import br.com.blupay.smesp.token.TokenWalletService
-import br.com.blupay.smesp.wallets.Wallet
 import br.com.blupay.smesp.wallets.WalletRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.UUID
 import javax.security.auth.login.CredentialException
 
@@ -35,93 +33,53 @@ class SellerService(
     private val sellerRepository: SellerRepository,
     private val identityProvider: IdentityProvider,
     private val encoderManager: EncoderManager,
-    private val tokenWalletService: TokenWalletService,
     private val walletRepository: WalletRepository,
-    private val jwsService: JwsService,
     private val ownerService: OwnerService
 ) {
 
-    fun createCredentials(sellerId: UUID, request: PasswordRequest, jwt: Jwt): SellerResponse {
-        val token = jwt.tokenValue
+    private val logger: Logger = LoggerFactory.getLogger(SellerService::class.java)
+
+    fun createCredentials(sellerId: UUID, request: PasswordRequest, auth: AuthCredentials): Mono<SellerResponse> {
+        logger.info("Creating a new user identity credentials from seller")
         val seller = findById(sellerId)
 
         if (OnboardFlow.CREDENTIALS != seller.flow) {
             throw SellerException("This seller $sellerId already has a credential")
         }
 
-        val credentialsCreated = identityProvider.createPersonCredentials(
-            token, sellerId, PersonCredentials.Request(
-                password = request.password,
-                groups = listOf("${UserGroups.SELLERS}")
+        return identityProvider.createPerson(
+            auth.token, PersonCreate.Request(
+                id = seller.id,
+                name = seller.name,
+                register = seller.cnpj,
+                email = seller.email,
+                phone = seller.phone,
             )
-        )
-
-        if (!credentialsCreated) {
-            throw CredentialException("Citizen $sellerId credentials were not created")
-        }
-
-        val pin = encoderManager.encrypt(request.password.substring(0, 4))
-        val wallet = walletRepository.findByOwner(sellerId)
-        if (wallet != null) {
-            walletRepository.save(
-                wallet.copy(
-                    id = wallet.id,
-                    owner = wallet.owner,
-                    token = wallet.token,
-                    type = wallet.type,
-                    pin = pin
+        ).zipWhen {
+            logger.info("Creating user password")
+            identityProvider.createPersonCredentials(
+                auth.token, sellerId, PersonCredentials.Request(
+                    password = request.password,
+                    groups = listOf("${UserGroups.SELLERS}")
                 )
             )
+        }.map { tuple ->
+            logger.info("Check if password is valid")
+            val passwordCreated = tuple.t2
+            if (!passwordCreated) throw CredentialException("Seller $sellerId credentials were not created")
+            tuple.t1
+        }.map {
+            val updatedSeller = sellerRepository.save(seller.copy(flow = VALIDATION))
+            createSellerCryptResponse(updatedSeller)
         }
-
-        val updatedSeller = sellerRepository.save(seller.copy(flow = VALIDATION))
-        return createSellerCryptResponse(updatedSeller)
     }
 
     fun findOneByCnpj(cnpj: String, jwt: Jwt): SellerResponse {
 
-        val token = jwt.tokenValue
         val seller = sellerRepository.findByCnpj(cnpj)
+            ?: throw SellerNotFoundException(cnpj)
 
-        if (seller != null) {
-            return createSellerCryptResponse(seller)
-        }
-
-        val sellerList = identityProvider.peopleSearch(token, PersonSearch.Query(register = cnpj))
-
-        val person = sellerList.stream().findFirst().orElseThrow { throw SellerNotFoundException(cnpj) }
-        val sellerSaved = sellerRepository.save(
-            Seller(
-                id = person.id,
-                name = person.name,
-                cnpj = person.register,
-                email = person.email,
-                phone = person.phone,
-                banks = listOf()
-            )
-        )
-
-        val pairKeys = jwsService.getKeyPairEncoded()
-
-        val wallet = tokenWalletService.issueWallet(
-            jwt.tokenValue,
-            IssueWallet(sellerSaved.id.toString(), pairKeys.publicKey, Wallet.Role.RECEIVER)
-        ).block()
-        walletRepository.save(
-            Wallet(
-                UUID.randomUUID(),
-                sellerSaved.id!!,
-                wallet?.id!!,
-                SELLER,
-                Wallet.Role.RECEIVER,
-                pairKeys.publicKey,
-                pairKeys.privateKey,
-                ""
-            )
-        )
-
-        return createSellerCryptResponse(sellerSaved)
-
+        return createSellerCryptResponse(seller)
     }
 
     fun findOne(sellerId: UUID, auth: AuthCredentials): SellerResponse {
