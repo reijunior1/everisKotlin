@@ -1,1 +1,0 @@
-alter table administrative add column document varchar(255) not null default '';
