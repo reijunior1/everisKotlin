@@ -1,11 +1,11 @@
-package com.acme.tour
+package com.algafood.api.rest.api
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class TourApplication
+class ApiApplication
 
 fun main(args: Array<String>) {
-	runApplication<TourApplication>(*args)
+	runApplication<ApiApplication>(*args)
 }
